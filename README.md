@@ -1,2 +1,2 @@
 # scg
-SCG a Random Programmer
+SCG a Random Library for Generators

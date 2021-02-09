@@ -1,0 +1,22 @@
+{
+  "name": "@tiveor/scg",
+  "version": "0.1.0",
+  "description": "SCG a Random Library for Generators",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tiveor/scg.git"
+  },
+  "author": "Alvaro Orellana",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tiveor/scg/issues"
+  },
+  "homepage": "https://github.com/tiveor/scg#readme",
+  "devDependencies": {
+    "prettier": "^2.6.1"
+  }
+}
