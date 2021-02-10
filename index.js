@@ -1,9 +1,9 @@
 const { StringHelper } = require("./src/string_helper");
 const { FileHelper } = require("./src/file_helper");
-
-//console.log("This is just a test");
+const { CommandHelper } = require("./src/command_helper");
 
 module.exports = {
   StringHelper,
-  FileHelper
+  FileHelper,
+  CommandHelper
 };
