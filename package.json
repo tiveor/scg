@@ -4,7 +4,7 @@
   "description": "SCG a Random Library for Generators",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/tiveor/scg#readme",
   "devDependencies": {
+    "mocha": "^8.3.0",
     "prettier": "^2.2.1"
   },
   "dependencies": {
