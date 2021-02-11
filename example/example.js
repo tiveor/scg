@@ -76,7 +76,7 @@ const testTemplateEJS = async () => {
 
 }
 
-//Usage TemplateHelper with handlebars
+//Usage TemplateBuilder with handlebars
 const testTemplateHandlebars = async () => {
   initTest("TemplateBuilder with handlebars");
   const builder = new TemplateBuilder(TEMPLATE_HANDLERS.HANDLEBARS);
@@ -99,7 +99,7 @@ const testTemplateHandlebars = async () => {
     })
 }
 
-//Usage TemplateHelper with pug
+//Usage TemplateBuilder with pug
 const testTemplatePug = async () => {
   initTest("TemplateBuilder with pug");
   const builder = new TemplateBuilder(TEMPLATE_HANDLERS.PUG);
