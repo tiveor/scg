@@ -4,9 +4,13 @@ const { exec } = require("child_process");
 const { StringHelper } = require("./string_helper");
 
 class FileHelper {
+  static readFileToString(fileName) {
+    return fs.readFileSync(fileName, 'utf8');
+  }
+
   static convertJsonFileToObject(fileName) {
-    let rawdata = fs.readFileSync(fileName);
-    return JSON.parse(rawdata);
+    const rawString = this.readFileToString(fileName);
+    return JSON.parse(rawString);
   }
 
   static simpleReplace(line, replacement) {
