@@ -3,7 +3,7 @@ class StringHelper {
     return line.replace(new RegExp(token, "g"), value);
   }
 
-  static capitalize = (s) => {
+  static capitalize(s) {
     if (typeof s !== "string") return "";
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
