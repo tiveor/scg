@@ -4,7 +4,7 @@
   "description": "SCG a Random Library for Generators",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha ./test"
   },
   "repository": {
     "type": "git",
