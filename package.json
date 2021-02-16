@@ -1,6 +1,6 @@
 {
   "name": "@tiveor/scg",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "SCG a Random Library for Generators",
   "main": "index.js",
   "scripts": {

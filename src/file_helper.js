@@ -1,7 +1,7 @@
 const fs = require("fs");
 const readline = require("readline");
-const { exec } = require("child_process");
 const { StringHelper } = require("./string_helper");
+const { CommandHelper } = require("./command_helper");
 
 class FileHelper {
   static readFileToString(fileName) {
@@ -126,15 +126,16 @@ class FileHelper {
       fs.mkdirSync(`./${folderName}/`, { recursive: true });
   }
 
-  static removeFolder(folderName, callback) {
-    exec(`rm -Rf '${folderName}'`, function (err, stdout, stderr) {
-      if (err || stderr) {
-        console.log("err:", err);
-        console.log("stderr:", stderr);
-      } else {
-        callback();
-      }
-    });
+  static removeFolder(folderName) {
+    return CommandHelper.runClean(
+      ".",
+      `rm -Rf '${folderName}'`);
+  }
+
+  static removeFile(filename) {
+    return CommandHelper.runClean(
+      ".",
+      `rm -f '${filename}'`);
   }
 }
 

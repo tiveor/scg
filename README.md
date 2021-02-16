@@ -1,5 +1,6 @@
 SCG a Random Library for Generators<br/>
 [![Build Status](https://img.shields.io/travis/mde/ejs/master.svg?style=flat)](https://travis-ci.org/mde/ejs)
+[![npm version](https://badge.fury.io/js/%40tiveor%2Fscg.svg)](https://badge.fury.io/js/%40tiveor%2Fscg)
 =============================
 
 ## Installation
@@ -47,4 +48,9 @@ handlebarsBuilder
   .then((replaced) => {
     // replaced = "This is a joke"
   });
+```
+
+## Example
+```bash
+node examples/index.js
 ```
