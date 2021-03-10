@@ -1,16 +1,14 @@
 SCG a Random Library for Generators<br/>
-[![Build Status](https://img.shields.io/travis/mde/ejs/master.svg?style=flat)](https://travis-ci.org/mde/ejs)
+[![Build Status](https://travis-ci.org/tiveor/scg.svg?branch=master)](https://travis-ci.org/tiveor/scg)
 [![npm version](https://badge.fury.io/js/%40tiveor%2Fscg.svg)](https://badge.fury.io/js/%40tiveor%2Fscg)
 =============================
 
 ## Installation
-
 ```bash
 npm install @tiveor/scg
 ```
 
 ## Basic usage
-
 ```javascript
 const { StringHelper } = require('@tiveor/scg');
 const replaced = StringHelper.replace('This is a {{test}}', '{{test}}', 'joke');
@@ -18,7 +16,6 @@ const replaced = StringHelper.replace('This is a {{test}}', '{{test}}', 'joke');
 ```
 
 ## TemplateBuilder usage
-
 ```javascript
 const { TemplateBuilder, TEMPLATE_HANDLERS } = require('@tiveor/scg');
 
@@ -52,5 +49,16 @@ handlebarsBuilder
 
 ## Example
 ```bash
-node examples/index.js
+node example/index.js
 ```
+
+For more information about templates visit the official documentation for each one:
+
+* EJS <br/>
+https://ejs.co/#docs
+
+* PUG <br/>
+https://pugjs.org/api/getting-started.html
+
+* Handlebars <br>
+https://handlebarsjs.com/guide/
