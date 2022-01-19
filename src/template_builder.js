@@ -1,10 +1,9 @@
-const { HandlebarsHelper } = require("./handlebars_helper");
-const { EjsHelper } = require("./ejs_helper");
-const { PugHelper } = require("./pug_helper");
-
+const { HandlebarsHelper } = require('./handlebars_helper');
+const { EjsHelper } = require('./ejs_helper');
+const { PugHelper } = require('./pug_helper');
+const TEMPLATE_HANDLERS = require('./template_handlers');
 
 class TemplateBuilder {
-
   constructor(templateHandler) {
     this.templateHandler = templateHandler;
   }
@@ -34,14 +33,6 @@ class TemplateBuilder {
         return HandlebarsHelper.renderFile(fileName, data, options);
     }
   }
-
 }
 
-const TEMPLATE_HANDLERS = {
-  HANDLEBARS: "HANDLEBARS",
-  EJS: "EJS",
-  PUG: "PUG",
-}
-
-exports.TEMPLATE_HANDLERS = TEMPLATE_HANDLERS;
 exports.TemplateBuilder = TemplateBuilder;
