@@ -1,10 +1,16 @@
-const { exec } = require("child_process");
+const { exec } = require('child_process');
 
 class CommandHelper {
   static run(directory, ...command) {
-    return new Promise((ok, reject) => {
-      const cmd = command.join(" && ");
-      //console.log(cmd);
+    if (!directory) {
+      return Promise.reject(new Error('directory is required'));
+    }
+    if (command.length === 0) {
+      return Promise.reject(new Error('at least one command is required'));
+    }
+
+    return new Promise((resolve, reject) => {
+      const cmd = command.join(' && ');
       exec(
         cmd,
         { cwd: directory, maxBuffer: 1024 * 1024 * 100 },
@@ -15,26 +21,19 @@ class CommandHelper {
           }
 
           if (stderr) {
-            ok(stderr);
+            resolve(stderr);
             return;
           }
 
-          ok(stdout);
+          resolve(stdout);
         }
       );
-    }).catch((error) => {
-      console.log(error);
     });
   }
 
   static runClean(folder, ...command) {
-    return new Promise((ok, reject) => {
-      CommandHelper.run(folder, ...command)
-        .then((cmdRes) => {
-          const config = cmdRes && cmdRes.replace(/\r?\n|\r/g, "");
-          ok(config);
-        })
-        .catch(reject);
+    return CommandHelper.run(folder, ...command).then((result) => {
+      return result && result.replace(/\r?\n|\r/g, '');
     });
   }
 }

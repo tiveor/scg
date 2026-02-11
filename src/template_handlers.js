@@ -4,4 +4,4 @@ const TEMPLATE_HANDLERS = {
   PUG: 'PUG'
 };
 
-exports.TEMPLATE_HANDLERS = TEMPLATE_HANDLERS;
+module.exports = TEMPLATE_HANDLERS;
