@@ -1,10 +1,12 @@
-const Handlebars = require("handlebars");
-const { FileHelper } = require("./file_helper");
+import Handlebars from 'handlebars';
+import { FileHelper } from './file_helper.js';
 
-//https://handlebarsjs.com/
-//https://github.com/handlebars-lang/handlebars.js
-class HandlebarsHelper {
-  static render(source, data, options) {
+export class HandlebarsHelper {
+  static render(
+    source: string,
+    data: Record<string, unknown>,
+    options?: CompileOptions
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
         const template = Handlebars.compile(source, options);
@@ -16,7 +18,11 @@ class HandlebarsHelper {
     });
   }
 
-  static renderFile(fileName, data, options) {
+  static renderFile(
+    fileName: string,
+    data: Record<string, unknown>,
+    options?: CompileOptions
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
         const source = FileHelper.readFileToString(fileName);
@@ -29,4 +35,3 @@ class HandlebarsHelper {
     });
   }
 }
-exports.HandlebarsHelper = HandlebarsHelper;

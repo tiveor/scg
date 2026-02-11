@@ -1,9 +1,11 @@
-const pug = require('pug');
+import pug from 'pug';
 
-//https://github.com/pugjs/pug
-//https://pugjs.org/api/getting-started.html
-class PugHelper {
-  static render(source, data, options) {
+export class PugHelper {
+  static render(
+    source: string,
+    data: Record<string, unknown>,
+    options?: pug.Options
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
         const template = pug.compile(source, options);
@@ -14,7 +16,11 @@ class PugHelper {
     });
   }
 
-  static renderFile(fileName, data, options) {
+  static renderFile(
+    fileName: string,
+    data: Record<string, unknown>,
+    options?: pug.Options
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
         const template = pug.compileFile(fileName, options);
@@ -25,4 +31,3 @@ class PugHelper {
     });
   }
 }
-exports.PugHelper = PugHelper;

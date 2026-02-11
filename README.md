@@ -2,7 +2,9 @@
 
 [![npm version](https://img.shields.io/npm/v/@tiveor/scg.svg)](https://www.npmjs.com/package/@tiveor/scg)
 
-A utility library for code generation and template processing in Node.js. Provides helpers for template rendering (EJS, Handlebars, Pug), string manipulation, file operations, command execution, and CLI parameter parsing.
+A utility library for code generation and template processing in Node.js. Provides helpers for template rendering (EJS, Handlebars, Pug), string manipulation, file operations, command execution, CLI parameter parsing, a scaffold engine, a template pipeline, and a file watcher.
+
+Written in TypeScript with full type definitions. Supports both ESM and CommonJS.
 
 ## Installation
 
@@ -12,24 +14,31 @@ npm install @tiveor/scg
 
 ## Quick Start
 
-```javascript
-const {
+```typescript
+// ESM
+import {
   StringHelper,
   FileHelper,
   CommandHelper,
   ParamHelper,
   TemplateBuilder,
+  Pipeline,
+  Scaffold,
+  Watcher,
   TEMPLATE_HANDLERS
-} = require('@tiveor/scg');
+} from '@tiveor/scg';
+
+// CommonJS
+const { TemplateBuilder, TEMPLATE_HANDLERS } = require('@tiveor/scg');
 ```
 
 ## API Reference
 
 ### TemplateBuilder
 
-Unified interface to render templates with EJS, Handlebars, or Pug.
+Unified interface to render templates with EJS, Handlebars, Pug, or any custom engine.
 
-```javascript
+```typescript
 const builder = new TemplateBuilder(TEMPLATE_HANDLERS.EJS);
 
 // Render from string
@@ -41,27 +50,96 @@ const page = await builder.renderFile('template.ejs', { title: 'Home' });
 
 Available handlers: `TEMPLATE_HANDLERS.EJS`, `TEMPLATE_HANDLERS.HANDLEBARS`, `TEMPLATE_HANDLERS.PUG`
 
-#### Examples with each engine
+#### Plugin System
 
-```javascript
-// EJS
-const ejs = new TemplateBuilder(TEMPLATE_HANDLERS.EJS);
-await ejs.render('Hello <%= name %>', { name: 'World' });
+Register custom template engines without modifying the library:
 
-// Handlebars
-const hbs = new TemplateBuilder(TEMPLATE_HANDLERS.HANDLEBARS);
-await hbs.render('Hello {{name}}', { name: 'World' });
+```typescript
+import nunjucks from 'nunjucks';
 
-// Pug
-const pug = new TemplateBuilder(TEMPLATE_HANDLERS.PUG);
-await pug.render('p #{name}', { name: 'World' });
+TemplateBuilder.registerEngine('nunjucks', {
+  render: async (source, data) => nunjucks.renderString(source, data),
+  renderFile: async (file, data) => nunjucks.render(file, data),
+});
+
+const builder = new TemplateBuilder('nunjucks');
+const result = await builder.render('Hello {{ name }}', { name: 'World' });
+
+// List all available engines
+TemplateBuilder.getRegisteredEngines();
+// => ['HANDLEBARS', 'EJS', 'PUG', 'nunjucks']
+```
+
+### Pipeline
+
+Chain transformations on template output:
+
+```typescript
+import { Pipeline } from '@tiveor/scg';
+
+const result = await new Pipeline()
+  .fromTemplate('component.ejs', { name: 'Button' }, 'EJS')
+  .transform((content) => content.toUpperCase())
+  .transform(addLicenseHeader)
+  .writeTo('src/components/Button.tsx');
+
+// Other input methods
+new Pipeline().fromString('raw content');
+new Pipeline().fromFile('input.txt');
+new Pipeline().fromTemplateString('<%= name %>', { name: 'World' }, 'EJS');
+```
+
+### Scaffold
+
+Generate directory structures from manifests:
+
+```typescript
+import { Scaffold } from '@tiveor/scg';
+
+const result = await Scaffold.from({
+  engine: 'EJS',
+  templateDir: './templates/react-component',
+  outputDir: './src/components/{{name}}',
+  variables: { name: 'UserProfile', style: 'module' },
+  structure: [
+    { template: 'component.ejs', output: '{{name}}.tsx' },
+    { template: 'styles.ejs',    output: '{{name}}.module.css' },
+    { template: 'test.ejs',      output: '{{name}}.test.tsx' },
+    { template: 'index.ejs',     output: 'index.ts' },
+  ]
+});
+
+console.log(result.files); // List of created file paths
+
+// Preview without writing files
+const preview = await Scaffold.from({ ...options, dryRun: true });
+```
+
+### Watcher
+
+Watch templates and regenerate on changes:
+
+```typescript
+import { Watcher } from '@tiveor/scg';
+
+const watcher = new Watcher({
+  templateDir: './templates',
+  outputDir: './generated',
+  engine: 'EJS',
+  variables: { project: 'MyApp' },
+  onRebuild: (file) => console.log(`Rebuilt: ${file}`),
+  onError: (err, file) => console.error(`Error in ${file}: ${err.message}`),
+});
+
+watcher.start();
+// watcher.stop();
 ```
 
 ### StringHelper
 
 Static methods for string manipulation.
 
-```javascript
+```typescript
 // Replace all occurrences of a token (regex-safe)
 StringHelper.replace('Hello {{name}}!', '{{name}}', 'World');
 // => "Hello World!"
@@ -81,21 +159,24 @@ StringHelper.escapeRegex('$100.00 (test)');
 
 ### FileHelper
 
-Static methods for file system operations.
+Static methods for file system operations (sync and async).
 
-```javascript
-// Read file to string
+```typescript
+// Sync
 const content = FileHelper.readFileToString('config.txt');
-
-// Parse JSON file to object
 const config = FileHelper.convertJsonFileToObject('config.json');
-
-// Create/remove folders
 FileHelper.createFolder('output/components');
 FileHelper.removeFolder('output/temp');
-
-// Remove file
 FileHelper.removeFile('output/old.txt');
+
+// Async
+const data = await FileHelper.readFileAsync('config.txt');
+const json = await FileHelper.readJsonFileAsync('config.json');
+await FileHelper.writeFileAsync('output/file.txt', 'content');
+await FileHelper.createFolderAsync('output/components');
+await FileHelper.removeFolderAsync('output/temp');
+await FileHelper.removeFileAsync('output/old.txt');
+const exists = await FileHelper.existsAsync('some/path');
 
 // Generate file from template with variable replacement
 await FileHelper.createFileFromFile({
@@ -106,23 +187,15 @@ await FileHelper.createFileFromFile({
     { token: '{{style}}', value: 'primary' }
   ]
 });
-
-// Generate string from template
-const result = await FileHelper.createStringFromFile({
-  template: 'templates/component.txt',
-  variables: [
-    { token: '{{name}}', value: 'Button' }
-  ]
-});
 ```
 
 ### CommandHelper
 
-Execute shell commands as promises.
+Execute shell commands as promises (with input sanitization).
 
-```javascript
+```typescript
 // Run a command
-const output = await CommandHelper.run('.', 'ls -la');
+const output = await CommandHelper.run('.', 'echo hello');
 
 // Chain multiple commands
 const result = await CommandHelper.run('.', 'git add .', 'git status');
@@ -135,7 +208,7 @@ const version = await CommandHelper.runClean('.', 'node --version');
 
 Parse CLI parameters from `process.argv`.
 
-```javascript
+```typescript
 // Add custom parameters
 ParamHelper.addCustomParam('--env=production');
 
@@ -148,9 +221,31 @@ const params = ParamHelper.getParams();
 // => { name: "Alice", port: "3000" }
 ```
 
+## CLI
+
+SCG includes a command-line interface for scaffolding and template rendering.
+
+```bash
+# Initialize a scaffold manifest
+npx @tiveor/scg init
+
+# Generate files from a scaffold manifest
+npx @tiveor/scg generate --manifest=scaffold.json --vars=name=Button
+
+# Preview without writing files
+npx @tiveor/scg generate --manifest=scaffold.json --vars=name=Button --dry-run
+
+# Render a single template
+npx @tiveor/scg render template.ejs --data='{"name":"World"}'
+
+# Render and save to file
+npx @tiveor/scg render template.ejs --data='{"name":"World"}' --output=output.html
+```
+
 ## Running Examples
 
 ```bash
+npm run build
 node example/index.js
 ```
 
@@ -158,6 +253,18 @@ node example/index.js
 
 ```bash
 npm test
+```
+
+## Development
+
+```bash
+npm run build        # Build CJS + ESM + .d.ts
+npm run dev          # Build in watch mode
+npm test             # Run tests
+npm run test:watch   # Run tests in watch mode
+npm run lint         # Lint source code
+npm run typecheck    # Type check with tsc
+npm run format       # Format with Prettier
 ```
 
 ## Template Engine Documentation
