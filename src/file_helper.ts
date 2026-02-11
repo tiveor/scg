@@ -22,6 +22,8 @@ export interface CreateStringOptions {
 }
 
 export class FileHelper {
+  // --- Sync methods ---
+
   static readFileToString(fileName: string): string {
     return fs.readFileSync(fileName, 'utf8');
   }
@@ -30,6 +32,73 @@ export class FileHelper {
     const rawString = FileHelper.readFileToString(fileName);
     return JSON.parse(rawString) as T;
   }
+
+  static createFolder(folderName: string): void {
+    const resolved = path.resolve(folderName);
+    if (!fs.existsSync(resolved)) {
+      fs.mkdirSync(resolved, { recursive: true });
+    }
+  }
+
+  static removeFolder(folderName: string): void {
+    const resolved = path.resolve(folderName);
+    if (fs.existsSync(resolved)) {
+      fs.rmSync(resolved, { recursive: true, force: true });
+    }
+  }
+
+  static removeFile(filename: string): void {
+    const resolved = path.resolve(filename);
+    if (fs.existsSync(resolved)) {
+      fs.rmSync(resolved, { force: true });
+    }
+  }
+
+  // --- Async methods ---
+
+  static async readFileAsync(fileName: string): Promise<string> {
+    return fs.promises.readFile(fileName, 'utf8');
+  }
+
+  static async readJsonFileAsync<T = unknown>(fileName: string): Promise<T> {
+    const raw = await fs.promises.readFile(fileName, 'utf8');
+    return JSON.parse(raw) as T;
+  }
+
+  static async writeFileAsync(
+    fileName: string,
+    content: string
+  ): Promise<void> {
+    const dir = path.dirname(fileName);
+    await fs.promises.mkdir(dir, { recursive: true });
+    await fs.promises.writeFile(fileName, content, 'utf8');
+  }
+
+  static async createFolderAsync(folderName: string): Promise<void> {
+    const resolved = path.resolve(folderName);
+    await fs.promises.mkdir(resolved, { recursive: true });
+  }
+
+  static async removeFolderAsync(folderName: string): Promise<void> {
+    const resolved = path.resolve(folderName);
+    await fs.promises.rm(resolved, { recursive: true, force: true });
+  }
+
+  static async removeFileAsync(filename: string): Promise<void> {
+    const resolved = path.resolve(filename);
+    await fs.promises.rm(resolved, { force: true });
+  }
+
+  static async existsAsync(filePath: string): Promise<boolean> {
+    try {
+      await fs.promises.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // --- Template processing methods ---
 
   static simpleReplace(line: string, replacement: Replacement): string {
     return StringHelper.replace(line, replacement.token, replacement.value!);
@@ -147,26 +216,5 @@ export class FileHelper {
     newLine: string
   ): Promise<void> {
     writer.write(`${newLine}\r\n`);
-  }
-
-  static createFolder(folderName: string): void {
-    const resolved = path.resolve(folderName);
-    if (!fs.existsSync(resolved)) {
-      fs.mkdirSync(resolved, { recursive: true });
-    }
-  }
-
-  static removeFolder(folderName: string): void {
-    const resolved = path.resolve(folderName);
-    if (fs.existsSync(resolved)) {
-      fs.rmSync(resolved, { recursive: true, force: true });
-    }
-  }
-
-  static removeFile(filename: string): void {
-    const resolved = path.resolve(filename);
-    if (fs.existsSync(resolved)) {
-      fs.rmSync(resolved, { force: true });
-    }
   }
 }

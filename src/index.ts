@@ -4,5 +4,12 @@ export type { Replacement, CreateFileOptions, CreateStringOptions } from './file
 export { CommandHelper } from './command_helper.js';
 export { ParamHelper } from './param_helper.js';
 export { TemplateBuilder } from './template_builder.js';
+export type { TemplateEngine } from './template_builder.js';
 export { TEMPLATE_HANDLERS } from './template_handlers.js';
 export type { TemplateHandler } from './template_handlers.js';
+export { Pipeline } from './pipeline.js';
+export type { TransformFn } from './pipeline.js';
+export { Scaffold } from './scaffold.js';
+export type { ScaffoldFile, ScaffoldOptions, ScaffoldResult } from './scaffold.js';
+export { Watcher } from './watcher.js';
+export type { WatcherOptions } from './watcher.js';
