@@ -1,0 +1,26 @@
+import { <%= name %>, Create<%= name %>Input, Update<%= name %>Input } from './<%= nameLower %>.model';
+import { <%= name %>Repository } from './<%= nameLower %>.repository';
+
+export class <%= name %>Service {
+  private repo = new <%= name %>Repository();
+
+  async getAll(): Promise<<%= name %>[]> {
+    return this.repo.findAll();
+  }
+
+  async getById(id: string): Promise<<%= name %> | null> {
+    return this.repo.findById(id);
+  }
+
+  async create(data: Create<%= name %>Input): Promise<<%= name %>> {
+    return this.repo.create(data);
+  }
+
+  async update(id: string, data: Update<%= name %>Input): Promise<<%= name %> | null> {
+    return this.repo.update(id, data);
+  }
+
+  async remove(id: string): Promise<boolean> {
+    return this.repo.delete(id);
+  }
+}

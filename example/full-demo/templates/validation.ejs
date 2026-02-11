@@ -1,0 +1,12 @@
+import { z } from 'zod';
+
+export const create<%= name %>Schema = z.object({
+<% fields.forEach(function(field) { -%>
+  <%= field.name %>: <%= field.zodType %>,
+<% }); -%>
+});
+
+export const update<%= name %>Schema = create<%= name %>Schema.partial();
+
+export type Create<%= name %>Dto = z.infer<typeof create<%= name %>Schema>;
+export type Update<%= name %>Dto = z.infer<typeof update<%= name %>Schema>;

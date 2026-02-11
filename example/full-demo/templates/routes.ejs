@@ -1,0 +1,16 @@
+import { Router } from 'express';
+import {
+  getAll<%= namePluralCap %>,
+  get<%= name %>ById,
+  create<%= name %>,
+  update<%= name %>,
+  delete<%= name %>,
+} from './<%= nameLower %>.controller';
+
+export const <%= nameLower %>Router = Router();
+
+<%= nameLower %>Router.get('/', getAll<%= namePluralCap %>);
+<%= nameLower %>Router.get('/:id', get<%= name %>ById);
+<%= nameLower %>Router.post('/', create<%= name %>);
+<%= nameLower %>Router.put('/:id', update<%= name %>);
+<%= nameLower %>Router.delete('/:id', delete<%= name %>);

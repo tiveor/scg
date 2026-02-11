@@ -1,0 +1,38 @@
+import { <%= name %>, Create<%= name %>Input, Update<%= name %>Input } from './<%= nameLower %>.model';
+import { createStore, type Store } from './<%= nameLower %>.store';
+import { randomUUID } from 'crypto';
+
+const store: Store<<%= name %>> = createStore<<%= name %>>('<%= namePlural %>');
+
+export class <%= name %>Repository {
+  async findAll(): Promise<<%= name %>[]> {
+    return store.getAll();
+  }
+
+  async findById(id: string): Promise<<%= name %> | null> {
+    return store.getById(id) ?? null;
+  }
+
+  async create(data: Create<%= name %>Input): Promise<<%= name %>> {
+    const entity: <%= name %> = {
+      id: randomUUID(),
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    store.set(entity.id, entity);
+    return entity;
+  }
+
+  async update(id: string, data: Update<%= name %>Input): Promise<<%= name %> | null> {
+    const existing = store.getById(id);
+    if (!existing) return null;
+    const updated: <%= name %> = { ...existing, ...data, updatedAt: new Date() };
+    store.set(id, updated);
+    return updated;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return store.delete(id);
+  }
+}

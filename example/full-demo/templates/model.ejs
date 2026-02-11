@@ -1,0 +1,11 @@
+export interface <%= name %> {
+  id: string;
+<% fields.forEach(function(field) { -%>
+  <%= field.name %>: <%= field.type %>;
+<% }); -%>
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type Create<%= name %>Input = Omit<<%= name %>, 'id' | 'createdAt' | 'updatedAt'>;
+export type Update<%= name %>Input = Partial<Create<%= name %>Input>;

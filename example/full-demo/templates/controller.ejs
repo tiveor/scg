@@ -1,0 +1,55 @@
+import { Request, Response, NextFunction } from 'express';
+import { <%= name %>Service } from './<%= nameLower %>.service';
+import { create<%= name %>Schema, update<%= name %>Schema } from './<%= nameLower %>.validation';
+
+const service = new <%= name %>Service();
+
+export async function getAll<%= namePluralCap %>(req: Request, res: Response, next: NextFunction) {
+  try {
+    const items = await service.getAll();
+    res.json(items);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function get<%= name %>ById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const item = await service.getById(req.params.id);
+    if (!item) return res.status(404).json({ message: '<%= name %> not found' });
+    res.json(item);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function create<%= name %>(req: Request, res: Response, next: NextFunction) {
+  try {
+    const data = create<%= name %>Schema.parse(req.body);
+    const item = await service.create(data);
+    res.status(201).json(item);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function update<%= name %>(req: Request, res: Response, next: NextFunction) {
+  try {
+    const data = update<%= name %>Schema.parse(req.body);
+    const item = await service.update(req.params.id, data);
+    if (!item) return res.status(404).json({ message: '<%= name %> not found' });
+    res.json(item);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function delete<%= name %>(req: Request, res: Response, next: NextFunction) {
+  try {
+    const deleted = await service.remove(req.params.id);
+    if (!deleted) return res.status(404).json({ message: '<%= name %> not found' });
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}

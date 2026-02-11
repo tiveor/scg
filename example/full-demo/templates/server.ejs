@@ -1,0 +1,54 @@
+import express, { Request, Response, NextFunction } from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { <%= nameLower %>Router } from './<%= nameLower %>.routes';
+import { STORAGE_MODE } from './<%= nameLower %>.store';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(express.json());
+
+// API routes
+app.use('/<%= namePlural %>', <%= nameLower %>Router);
+
+// Admin UI
+app.get('/admin', (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '<%= nameLower %>.admin.html'));
+});
+
+// Health check / API info
+app.get('/', (_req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    entity: '<%= name %>',
+    storage: STORAGE_MODE,
+    endpoints: {
+      admin: 'GET /admin',
+      list: 'GET /<%= namePlural %>',
+      getById: 'GET /<%= namePlural %>/:id',
+      create: 'POST /<%= namePlural %>',
+      update: 'PUT /<%= namePlural %>/:id',
+      delete: 'DELETE /<%= namePlural %>/:id',
+    },
+  });
+});
+
+// Error handler
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  if (err.name === 'ZodError') {
+    return res.status(400).json({ error: 'Validation failed', details: (err as any).issues });
+  }
+  console.error(err);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
+app.listen(PORT, () => {
+  console.log(`\n  <%= name %> API running on http://localhost:${PORT}`);
+  console.log(`  Storage:    ${STORAGE_MODE}`);
+  console.log(`  Admin UI:   http://localhost:${PORT}/admin`);
+  console.log(`  API:        http://localhost:${PORT}/<%= namePlural %>\n`);
+});

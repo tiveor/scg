@@ -1,0 +1,129 @@
+# {{name}} API
+
+CRUD REST API for **{{name}}** entities, built with Express + TypeScript + Zod.
+
+Generated with [SCG](https://www.npmjs.com/package/@tiveor/scg).
+
+## Quick Start
+
+```bash
+pnpm install
+pnpm run dev
+```
+
+The server starts on [http://localhost:3000](http://localhost:3000).
+
+Open the admin UI at [http://localhost:3000/admin](http://localhost:3000/admin).
+
+## Storage
+
+The API supports two storage backends, configured via the `STORAGE` environment variable:
+
+| Mode | Command | Persistence |
+|------|---------|-------------|
+| **memory** (default) | `pnpm run dev` | Data is lost on restart |
+| **file** | `STORAGE=file pnpm run dev` | Data saved to `{{{namePlural}}}.data.json` |
+
+## Admin UI
+
+Navigate to [http://localhost:3000/admin](http://localhost:3000/admin) to manage {{{namePlural}}} from the browser:
+
+- View all {{{namePlural}}} in a table
+- Create new {{{namePlural}}} via form
+- Edit existing {{{namePlural}}} inline
+- Delete with confirmation
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/{{{namePlural}}}` | List all {{{namePlural}}} |
+| `GET` | `/{{{namePlural}}}/:id` | Get {{{nameLower}}} by ID |
+| `POST` | `/{{{namePlural}}}` | Create a new {{{nameLower}}} |
+| `PUT` | `/{{{namePlural}}}/:id` | Update a {{{nameLower}}} |
+| `DELETE` | `/{{{namePlural}}}/:id` | Delete a {{{nameLower}}} |
+
+## Schema
+
+| Field | Type | Required |
+|-------|------|----------|
+| `id` | `UUID` | auto |
+{{#each fields}}
+| `{{this.name}}` | `{{this.type}}` | yes |
+{{/each}}
+| `createdAt` | `Date` | auto |
+| `updatedAt` | `Date` | auto |
+
+## Examples
+
+### Create a {{nameLower}}
+
+```bash
+curl -X POST http://localhost:3000/{{{namePlural}}} \
+  -H "Content-Type: application/json" \
+  -d '{{{exampleJson}}}'
+```
+
+### List all {{{namePlural}}}
+
+```bash
+curl http://localhost:3000/{{{namePlural}}}
+```
+
+### Get by ID
+
+```bash
+curl http://localhost:3000/{{{namePlural}}}/<id>
+```
+
+### Update
+
+```bash
+curl -X PUT http://localhost:3000/{{{namePlural}}}/<id> \
+  -H "Content-Type: application/json" \
+  -d '{{{exampleJson}}}'
+```
+
+### Delete
+
+```bash
+curl -X DELETE http://localhost:3000/{{{namePlural}}}/<id>
+```
+
+## Testing
+
+```bash
+pnpm test
+```
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `pnpm run dev` | Start dev server with tsx |
+| `pnpm run build` | Compile TypeScript |
+| `pnpm start` | Run compiled server |
+| `pnpm test` | Run tests with Vitest |
+
+## Project Structure
+
+```
+{{nameLower}}/
+├── server.ts              # Express entry point + admin route
+├── {{nameLower}}.store.ts        # Storage abstraction (memory/file)
+├── {{nameLower}}.model.ts        # TypeScript interfaces
+├── {{nameLower}}.repository.ts   # Data access layer
+├── {{nameLower}}.service.ts      # Business logic
+├── {{nameLower}}.controller.ts   # HTTP handlers
+├── {{nameLower}}.routes.ts       # Express router
+├── {{nameLower}}.validation.ts   # Zod schemas
+├── {{nameLower}}.test.ts         # Unit tests
+├── {{nameLower}}.migration.sql   # SQL migration
+├── {{nameLower}}.admin.html      # Admin UI (interactive)
+├── {{nameLower}}.api.md          # API reference
+├── index.ts               # Barrel exports
+├── package.json
+├── tsconfig.json
+├── vitest.config.ts
+└── README.md
+```

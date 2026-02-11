@@ -10,6 +10,8 @@ A utility library for code generation and template processing in Node.js. Provid
 
 Written in TypeScript with full type definitions. Supports both ESM and CommonJS.
 
+![SCG Demo](demo_scg.gif)
+
 ## Installation
 
 ```bash
@@ -276,6 +278,91 @@ import { Scaffold } from '@tiveor/scg';
 import manifest from './templates/react-component/scaffold.json';
 
 await Scaffold.from({ ...manifest, variables: { name: 'Button', style: 'module' } });
+```
+
+## Full Demo — CRUD API Generator
+
+The `example/full-demo/` directory contains a comprehensive example that uses **every SCG feature** in a single script. It generates a complete, runnable Express + TypeScript + Zod REST API from an entity name and its fields.
+
+### Usage
+
+```bash
+npm run build
+node example/full-demo/generate.js --entity=Product --fields=name:string,price:number,active:boolean
+```
+
+Then install, test, and launch (opens the admin UI in the browser):
+
+```bash
+./generated/product/run.sh
+```
+
+Or step by step:
+
+```bash
+cd generated/product
+pnpm install
+pnpm test
+pnpm run dev                   # in-memory storage (default)
+STORAGE=file pnpm run dev      # file-based storage (persists across restarts)
+```
+
+Open the admin UI at [http://localhost:3000/admin](http://localhost:3000/admin) to manage entities from the browser (create, edit, delete).
+
+Test the API via curl:
+
+```bash
+curl http://localhost:3000/products
+curl -X POST http://localhost:3000/products \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Widget","price":9.99,"active":true}'
+```
+
+### What it generates (18 files)
+
+```
+generated/product/
+├── server.ts              # Express entry point + admin route
+├── product.store.ts       # Storage abstraction (memory/file)
+├── product.model.ts       # TypeScript interfaces
+├── product.repository.ts  # Data access layer
+├── product.service.ts     # Business logic
+├── product.controller.ts  # HTTP handlers
+├── product.routes.ts      # Express router
+├── product.validation.ts  # Zod schemas
+├── product.test.ts        # Unit tests (Vitest)
+├── product.migration.sql  # SQL migration
+├── product.admin.html     # Interactive admin UI
+├── product.api.md         # API reference
+├── README.md              # Quickstart guide
+├── index.ts               # Barrel exports
+├── package.json           # Dependencies & scripts
+├── tsconfig.json          # TypeScript config
+├── vitest.config.ts       # Test config
+└── run.sh                 # Install, test & launch script
+```
+
+### SCG features demonstrated
+
+| Step | Feature | What it does |
+|------|---------|--------------|
+| 1 | **ParamHelper** | Parses `--entity` and `--fields` from CLI args |
+| 2 | **StringHelper** | Transforms entity name: `Product` → `product`, `products`, `PRODUCT` |
+| 3 | **Plugin System** | Registers a custom `sql` engine with `<<var>>` syntax |
+| 4 | **Scaffold** | Generates 9 TypeScript files from EJS templates in one call |
+| 5 | **Pipeline** | Renders Handlebars (README, docs) and Pug (admin UI) with chained transforms |
+| 6 | **TemplateBuilder** | Uses the custom `sql` engine to render the migration file |
+| 7 | **FileHelper** | Creates `package.json`, `tsconfig.json`, `vitest.config.ts`, barrel `index.ts`, and `run.sh` |
+| 8 | **CommandHelper** | Lists the generated files via shell command |
+| 9 | **Watcher** | With `--watch`, re-generates on template changes |
+
+Four template engines are used: **EJS** (9 files), **Handlebars** (2 files), **Pug** (1 file), and a **custom SQL engine** (1 file).
+
+Works with any entity:
+
+```bash
+node example/full-demo/generate.js --entity=Order --fields=total:number,status:string,paid:boolean
+node example/full-demo/generate.js --entity=User --fields=email:string,age:number,active:boolean --watch
 ```
 
 ## Running Examples

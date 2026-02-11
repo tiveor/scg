@@ -1,0 +1,66 @@
+# {{name}} API
+
+REST API documentation for the **{{name}}** entity.
+
+## Base URL
+
+```
+/{{namePlural}}
+```
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/{{namePlural}}` | List all {{namePlural}} |
+| `GET` | `/{{namePlural}}/:id` | Get {{nameLower}} by ID |
+| `POST` | `/{{namePlural}}` | Create a new {{nameLower}} |
+| `PUT` | `/{{namePlural}}/:id` | Update a {{nameLower}} |
+| `DELETE` | `/{{namePlural}}/:id` | Delete a {{nameLower}} |
+
+## Schema
+
+| Field | Type | Required |
+|-------|------|----------|
+| `id` | `UUID` | auto-generated |
+{{#each fields}}
+| `{{this.name}}` | `{{this.type}}` | yes |
+{{/each}}
+| `createdAt` | `Date` | auto-generated |
+| `updatedAt` | `Date` | auto-generated |
+
+## Examples
+
+### Create {{name}}
+
+```http
+POST /{{namePlural}}
+Content-Type: application/json
+```
+
+### List All {{namePluralCap}}
+
+```http
+GET /{{namePlural}}
+```
+
+### Get {{name}} by ID
+
+```http
+GET /{{namePlural}}/:id
+```
+
+### Update {{name}}
+
+```http
+PUT /{{namePlural}}/:id
+Content-Type: application/json
+```
+
+### Delete {{name}}
+
+```http
+DELETE /{{namePlural}}/:id
+```
+
+Returns `204 No Content` on success.

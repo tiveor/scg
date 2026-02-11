@@ -1,0 +1,27 @@
+{
+  "engine": "EJS",
+  "templateDir": "./example/full-demo/templates",
+  "outputDir": "./generated/{{nameLower}}",
+  "variables": {
+    "name": "Product",
+    "nameLower": "product",
+    "nameUpper": "PRODUCT",
+    "namePlural": "products",
+    "namePluralCap": "Products",
+    "fields": [
+      { "name": "name", "type": "string", "zodType": "z.string()", "sqlType": "VARCHAR(255)", "htmlType": "text", "capitalized": "Name" },
+      { "name": "price", "type": "number", "zodType": "z.number()", "sqlType": "NUMERIC", "htmlType": "number", "capitalized": "Price" },
+      { "name": "active", "type": "boolean", "zodType": "z.boolean()", "sqlType": "BOOLEAN", "htmlType": "checkbox", "capitalized": "Active" }
+    ],
+    "timestamp": "2024-01-01"
+  },
+  "structure": [
+    { "template": "model.ejs", "output": "{{nameLower}}.model.ts" },
+    { "template": "repository.ejs", "output": "{{nameLower}}.repository.ts" },
+    { "template": "service.ejs", "output": "{{nameLower}}.service.ts" },
+    { "template": "controller.ejs", "output": "{{nameLower}}.controller.ts" },
+    { "template": "routes.ejs", "output": "{{nameLower}}.routes.ts" },
+    { "template": "validation.ejs", "output": "{{nameLower}}.validation.ts" },
+    { "template": "test.ejs", "output": "{{nameLower}}.test.ts" }
+  ]
+}

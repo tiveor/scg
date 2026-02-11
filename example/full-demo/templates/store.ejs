@@ -1,0 +1,93 @@
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+
+export interface Store<T> {
+  getAll(): T[];
+  getById(id: string): T | undefined;
+  set(id: string, item: T): void;
+  delete(id: string): boolean;
+  clear(): void;
+}
+
+// In-memory store using a Map
+class MemoryStore<T extends { id: string }> implements Store<T> {
+  private data = new Map<string, T>();
+
+  getAll(): T[] {
+    return [...this.data.values()];
+  }
+
+  getById(id: string): T | undefined {
+    return this.data.get(id);
+  }
+
+  set(id: string, item: T): void {
+    this.data.set(id, item);
+  }
+
+  delete(id: string): boolean {
+    return this.data.delete(id);
+  }
+
+  clear(): void {
+    this.data.clear();
+  }
+}
+
+// File-based store using a JSON file (persists across restarts)
+class FileStore<T extends { id: string }> implements Store<T> {
+  private filePath: string;
+
+  constructor(filePath: string) {
+    this.filePath = filePath;
+    if (!existsSync(this.filePath)) {
+      writeFileSync(this.filePath, '[]', 'utf-8');
+    }
+  }
+
+  private read(): T[] {
+    return JSON.parse(readFileSync(this.filePath, 'utf-8'));
+  }
+
+  private write(data: T[]): void {
+    writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
+  }
+
+  getAll(): T[] {
+    return this.read();
+  }
+
+  getById(id: string): T | undefined {
+    return this.read().find((item) => item.id === id);
+  }
+
+  set(id: string, item: T): void {
+    const data = this.read();
+    const index = data.findIndex((i) => i.id === id);
+    if (index >= 0) data[index] = item;
+    else data.push(item);
+    this.write(data);
+  }
+
+  delete(id: string): boolean {
+    const data = this.read();
+    const filtered = data.filter((i) => i.id !== id);
+    if (filtered.length === data.length) return false;
+    this.write(filtered);
+    return true;
+  }
+
+  clear(): void {
+    this.write([]);
+  }
+}
+
+// Factory: use STORAGE=file for file-based persistence, default is memory
+export function createStore<T extends { id: string }>(entity: string): Store<T> {
+  const mode = process.env.STORAGE || 'memory';
+  if (mode === 'file') {
+    return new FileStore<T>(`./${entity}.data.json`);
+  }
+  return new MemoryStore<T>();
+}
+
+export const STORAGE_MODE = process.env.STORAGE || 'memory';
