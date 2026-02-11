@@ -1,0 +1,19 @@
+<template>
+  <div class="<%= name.toLowerCase() %>">
+    <slot />
+  </div>
+</template>
+
+<script setup lang="ts">
+defineProps<{
+  /** Optional CSS class name */
+  className?: string;
+}>();
+</script>
+
+<style scoped>
+.<%= name.toLowerCase() %> {
+  display: flex;
+  flex-direction: column;
+}
+</style>

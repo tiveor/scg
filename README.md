@@ -1,6 +1,10 @@
 # SCG - Simple Code Generator
 
 [![npm version](https://img.shields.io/npm/v/@tiveor/scg.svg)](https://www.npmjs.com/package/@tiveor/scg)
+[![CI](https://github.com/tiveor/scg/actions/workflows/ci.yml/badge.svg)](https://github.com/tiveor/scg/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
 
 A utility library for code generation and template processing in Node.js. Provides helpers for template rendering (EJS, Handlebars, Pug), string manipulation, file operations, command execution, CLI parameter parsing, a scaffold engine, a template pipeline, and a file watcher.
 
@@ -33,6 +37,12 @@ const { TemplateBuilder, TEMPLATE_HANDLERS } = require('@tiveor/scg');
 ```
 
 ## API Reference
+
+Full API documentation is available via TypeDoc:
+
+```bash
+npm run docs    # Generates HTML docs in ./docs
+```
 
 ### TemplateBuilder
 
@@ -242,11 +252,40 @@ npx @tiveor/scg render template.ejs --data='{"name":"World"}'
 npx @tiveor/scg render template.ejs --data='{"name":"World"}' --output=output.html
 ```
 
+## Predefined Template Packs
+
+SCG ships with ready-to-use template packs in the `templates/` directory:
+
+| Pack | Files | Description |
+|------|-------|-------------|
+| **react-component** | component, test, styles, index | React TSX component with CSS modules |
+| **vue-component** | component, test | Vue 3 SFC with `<script setup>` |
+| **express-route** | routes, controller, service | Express REST route with MVC pattern |
+| **github-action** | workflow | GitHub Actions CI workflow |
+
+Each pack includes a `scaffold.json` manifest. Use them with the CLI:
+
+```bash
+npx @tiveor/scg generate --manifest=templates/react-component/scaffold.json --vars=name=Button,style=module
+```
+
+Or programmatically:
+
+```typescript
+import { Scaffold } from '@tiveor/scg';
+import manifest from './templates/react-component/scaffold.json';
+
+await Scaffold.from({ ...manifest, variables: { name: 'Button', style: 'module' } });
+```
+
 ## Running Examples
 
 ```bash
 npm run build
-node example/index.js
+node example/index.js           # Original template examples
+node example/pipeline-demo.js   # Pipeline API demo
+node example/scaffold-demo.js   # Scaffold engine demo
+node example/plugin-demo.js     # Plugin system demo
 ```
 
 ## Running Tests
@@ -265,6 +304,7 @@ npm run test:watch   # Run tests in watch mode
 npm run lint         # Lint source code
 npm run typecheck    # Type check with tsc
 npm run format       # Format with Prettier
+npm run docs         # Generate API docs with TypeDoc
 ```
 
 ## Template Engine Documentation

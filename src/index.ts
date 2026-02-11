@@ -1,3 +1,14 @@
+/**
+ * SCG - Simple Code Generator
+ *
+ * A utility library for code generation and template processing in Node.js.
+ * Provides helpers for template rendering (EJS, Handlebars, Pug), string manipulation,
+ * file operations, command execution, CLI parameter parsing, a scaffold engine,
+ * a template pipeline, and a file watcher.
+ *
+ * @packageDocumentation
+ */
+
 export { StringHelper } from './string_helper.js';
 export { FileHelper } from './file_helper.js';
 export type { Replacement, CreateFileOptions, CreateStringOptions } from './file_helper.js';

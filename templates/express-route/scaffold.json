@@ -1,0 +1,13 @@
+{
+  "engine": "EJS",
+  "templateDir": "./templates/express-route",
+  "outputDir": "./src/routes/{{name}}",
+  "variables": {
+    "name": "User"
+  },
+  "structure": [
+    { "template": "routes.ejs", "output": "{{name}}.routes.ts" },
+    { "template": "controller.ejs", "output": "{{name}}.controller.ts" },
+    { "template": "service.ejs", "output": "{{name}}.service.ts" }
+  ]
+}

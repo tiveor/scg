@@ -2,20 +2,53 @@ import fs from 'fs';
 import path from 'path';
 import { TemplateBuilder } from './template_builder.js';
 
+/** Configuration options for the file watcher. */
 export interface WatcherOptions {
+  /** Directory containing template files to watch. */
   templateDir: string;
+  /** Directory where rendered output files are written. */
   outputDir: string;
+  /** Template engine to use for rendering (e.g., `'EJS'`, `'HANDLEBARS'`, `'PUG'`). */
   engine: string;
+  /** Variables to pass to the template engine during rendering. */
   variables: Record<string, unknown>;
+  /** File extensions to watch (defaults to `['.ejs', '.hbs', '.handlebars', '.pug']`). */
   extensions?: string[];
+  /** Callback invoked after a file is successfully rebuilt. */
   onRebuild?: (file: string) => void;
+  /** Callback invoked when a rebuild error occurs. */
   onError?: (error: Error, file: string) => void;
 }
 
+/**
+ * Watches a template directory and automatically re-renders templates when they change.
+ *
+ * Uses `fs.watch()` with `AbortController` for clean start/stop lifecycle.
+ *
+ * @example
+ * ```typescript
+ * const watcher = new Watcher({
+ *   templateDir: './templates',
+ *   outputDir: './generated',
+ *   engine: 'EJS',
+ *   variables: { project: 'MyApp' },
+ *   onRebuild: (file) => console.log(`Rebuilt: ${file}`),
+ *   onError: (err, file) => console.error(`Error in ${file}: ${err.message}`),
+ * });
+ *
+ * watcher.start();
+ * // Later: watcher.stop();
+ * ```
+ */
 export class Watcher {
   private options: WatcherOptions;
   private abortController: AbortController | null = null;
 
+  /**
+   * Creates a new Watcher instance.
+   *
+   * @param options - Watcher configuration
+   */
   constructor(options: WatcherOptions) {
     this.options = {
       extensions: ['.ejs', '.hbs', '.handlebars', '.pug'],
@@ -23,6 +56,10 @@ export class Watcher {
     };
   }
 
+  /**
+   * Starts watching the template directory for changes.
+   * Does nothing if the watcher is already running.
+   */
   start(): void {
     if (this.abortController) {
       return;
@@ -60,6 +97,9 @@ export class Watcher {
     }
   }
 
+  /**
+   * Stops watching for changes and cleans up resources.
+   */
   stop(): void {
     if (this.abortController) {
       this.abortController.abort();
@@ -67,6 +107,9 @@ export class Watcher {
     }
   }
 
+  /**
+   * Whether the watcher is currently active.
+   */
   get isRunning(): boolean {
     return this.abortController !== null;
   }
