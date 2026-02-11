@@ -1,7 +1,0 @@
-const TEMPLATE_HANDLERS = {
-  HANDLEBARS: 'HANDLEBARS',
-  EJS: 'EJS',
-  PUG: 'PUG'
-};
-
-module.exports = TEMPLATE_HANDLERS;
