@@ -1,0 +1,12 @@
+{
+  "engine": "EJS",
+  "templateDir": "./templates/github-action",
+  "outputDir": "./.github/workflows",
+  "variables": {
+    "name": "CI",
+    "branch": "main"
+  },
+  "structure": [
+    { "template": "workflow.ejs", "output": "{{name}}.yml" }
+  ]
+}

@@ -1,0 +1,16 @@
+import { mount } from '@vue/test-utils';
+import <%= name %> from './<%= name %>.vue';
+
+describe('<%= name %>', () => {
+  it('renders slot content', () => {
+    const wrapper = mount(<%= name %>, {
+      slots: { default: 'Hello' },
+    });
+    expect(wrapper.text()).toContain('Hello');
+  });
+
+  it('has correct root class', () => {
+    const wrapper = mount(<%= name %>);
+    expect(wrapper.classes()).toContain('<%= name.toLowerCase() %>');
+  });
+});

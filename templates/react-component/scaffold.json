@@ -1,0 +1,15 @@
+{
+  "engine": "EJS",
+  "templateDir": "./templates/react-component",
+  "outputDir": "./src/components/{{name}}",
+  "variables": {
+    "name": "MyComponent",
+    "style": "module"
+  },
+  "structure": [
+    { "template": "component.ejs", "output": "{{name}}.tsx" },
+    { "template": "test.ejs", "output": "{{name}}.test.tsx" },
+    { "template": "styles.ejs", "output": "{{name}}.module.css" },
+    { "template": "index.ejs", "output": "index.ts" }
+  ]
+}

@@ -1,0 +1,25 @@
+import React from 'react';
+<% if (style === 'module') { %>
+import styles from './<%= name %>.module.css';
+<% } %>
+
+export interface <%= name %>Props {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export const <%= name %>: React.FC<<%= name %>Props> = ({ className, children }) => {
+<% if (style === 'module') { %>
+  return (
+    <div className={`${styles.root} ${className ?? ''}`}>
+      {children}
+    </div>
+  );
+<% } else { %>
+  return (
+    <div className={className}>
+      {children}
+    </div>
+  );
+<% } %>
+};

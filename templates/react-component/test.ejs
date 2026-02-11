@@ -1,0 +1,14 @@
+import { render, screen } from '@testing-library/react';
+import { <%= name %> } from './<%= name %>';
+
+describe('<%= name %>', () => {
+  it('renders children', () => {
+    render(<<%= name %>>Hello</<%= name %>>);
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+
+  it('accepts className prop', () => {
+    const { container } = render(<<%= name %> className="custom" />);
+    expect(container.firstChild).toHaveClass('custom');
+  });
+});

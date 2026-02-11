@@ -1,0 +1,12 @@
+{
+  "engine": "EJS",
+  "templateDir": "./templates/vue-component",
+  "outputDir": "./src/components",
+  "variables": {
+    "name": "MyComponent"
+  },
+  "structure": [
+    { "template": "component.ejs", "output": "{{name}}.vue" },
+    { "template": "test.ejs", "output": "{{name}}.test.ts" }
+  ]
+}
