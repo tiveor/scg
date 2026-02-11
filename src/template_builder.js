@@ -15,7 +15,7 @@ class TemplateBuilder {
       case TEMPLATE_HANDLERS.EJS:
         return EjsHelper.render(source, data, options);
       case TEMPLATE_HANDLERS.PUG:
-        return PugHelper.render(fileName, data, options);
+        return PugHelper.render(source, data, options);
       default:
         return HandlebarsHelper.render(source, data, options);
     }

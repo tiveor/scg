@@ -1,11 +1,25 @@
 {
   "name": "@tiveor/scg",
-  "version": "0.1.6",
-  "description": "SCG a Random Library for Generators",
+  "version": "0.2.0",
+  "description": "Simple Code Generator - A utility library for code generation and template processing",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./test"
+    "test": "mocha ./test",
+    "example": "node example/index.js"
   },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "code-generator",
+    "template",
+    "scaffolding",
+    "ejs",
+    "handlebars",
+    "pug",
+    "file-helper",
+    "string-helper"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tiveor/scg.git"

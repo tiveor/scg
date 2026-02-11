@@ -1,7 +1,7 @@
-const fs = require("fs");
-const readline = require("readline");
-const { StringHelper } = require("./string_helper");
-const { CommandHelper } = require("./command_helper");
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+const { StringHelper } = require('./string_helper');
 
 class FileHelper {
   static readFileToString(fileName) {
@@ -18,7 +18,7 @@ class FileHelper {
   }
 
   static async dynamicReplace(replacement) {
-    let res = "";
+    let res = '';
     for (let v in replacement.variables) {
       const properties = replacement.variables[v];
       await FileHelper.readLineByLine(replacement.template, (line) => {
@@ -43,7 +43,7 @@ class FileHelper {
     await FileHelper.readLineByLine(template, async (line) => {
       let newLine = StringHelper.replace(
         line,
-        "@date",
+        '@date',
         new Date().toUTCString()
       );
 
@@ -52,7 +52,6 @@ class FileHelper {
 
         if (newLine.indexOf(replacement.token) > 0) {
           if (replacement.template) {
-            //dynamic since there is no value
             newLine = await FileHelper.dynamicReplace(replacement);
             break;
           } else if (replacement.value) {
@@ -67,12 +66,12 @@ class FileHelper {
   }
 
   static async createStringFromFile({ template, variables }) {
-    let res = "";
+    let res = '';
 
     await FileHelper.readLineByLine(template, async (line) => {
       let newLine = StringHelper.replace(
         line,
-        "@date",
+        '@date',
         new Date().toUTCString()
       );
 
@@ -81,7 +80,6 @@ class FileHelper {
 
         if (newLine.indexOf(replacement.token) > 0) {
           if (replacement.template) {
-            //dynamic since there is no value
             newLine = await FileHelper.dynamicReplace(replacement);
             break;
           } else if (replacement.value) {
@@ -89,31 +87,27 @@ class FileHelper {
           }
         }
       }
-      res += newLine + "\n";
+      res += newLine + '\n';
     });
     return res;
   }
 
-  static async readLineByLine(fileName, newLine) {
+  static async readLineByLine(fileName, callback) {
     const fileStream = fs.createReadStream(fileName);
 
     const rl = readline.createInterface({
       input: fileStream,
-      crlfDelay: Infinity,
+      crlfDelay: Infinity
     });
 
-    let index = 0;
-
     for await (const line of rl) {
-      index++;
-      //console.log(index);
-      await newLine(line);
+      await callback(line);
     }
   }
 
   static writer(filename) {
     return fs.createWriteStream(filename, {
-      flags: "a",
+      flags: 'a'
     });
   }
 
@@ -122,20 +116,24 @@ class FileHelper {
   }
 
   static createFolder(folderName) {
-    !fs.existsSync(`./${folderName}/`) &&
-      fs.mkdirSync(`./${folderName}/`, { recursive: true });
+    const resolved = path.resolve(folderName);
+    if (!fs.existsSync(resolved)) {
+      fs.mkdirSync(resolved, { recursive: true });
+    }
   }
 
   static removeFolder(folderName) {
-    return CommandHelper.runClean(
-      ".",
-      `rm -Rf '${folderName}'`);
+    const resolved = path.resolve(folderName);
+    if (fs.existsSync(resolved)) {
+      fs.rmSync(resolved, { recursive: true, force: true });
+    }
   }
 
   static removeFile(filename) {
-    return CommandHelper.runClean(
-      ".",
-      `rm -f '${filename}'`);
+    const resolved = path.resolve(filename);
+    if (fs.existsSync(resolved)) {
+      fs.rmSync(resolved, { force: true });
+    }
   }
 }
 
