@@ -1,6 +1,6 @@
 {
   "name": "@tiveor/scg",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Simple Code Generator - A utility library for code generation and template processing",
   "type": "module",
   "main": "./dist/index.cjs",
