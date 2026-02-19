@@ -1,0 +1,20 @@
+{
+  "engine": "EJS",
+  "templateDir": "./example/landing-page-demo/templates",
+  "outputDir": "./generated/{{nameLower}}-landing",
+  "variables": {
+    "name": "MyApp",
+    "nameLower": "myapp",
+    "title": "My Landing Page",
+    "description": "A modern landing page built with React and TypeScript"
+  },
+  "structure": [
+    { "template": "index-html.ejs", "output": "index.html" },
+    { "template": "main.ejs", "output": "src/main.tsx" },
+    { "template": "app.ejs", "output": "src/App.tsx" },
+    { "template": "app-css.ejs", "output": "src/App.css" },
+    { "template": "index-css.ejs", "output": "src/index.css" },
+    { "template": "vite-env.ejs", "output": "src/vite-env.d.ts" },
+    { "template": "vite-svg.ejs", "output": "public/vite.svg" }
+  ]
+}
