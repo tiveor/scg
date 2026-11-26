@@ -47,3 +47,18 @@ export { resolveInputs, coerce, MissingInputError } from './inputs.js';
 export type { ResolveOptions } from './inputs.js';
 export { PromptCancelledError } from './prompter.js';
 export type { Prompter } from './prompter.js';
+export {
+  createMcpServer,
+  serveStdio,
+  generatorTools,
+  runGeneratorTool,
+  inputSchema,
+  toolName,
+  SUPPORTED_PROTOCOL_VERSIONS
+} from './mcp.js';
+export type {
+  GeneratorTool,
+  CallToolResult,
+  JsonSchema,
+  McpServerOptions
+} from './mcp.js';
