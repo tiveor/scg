@@ -40,7 +40,6 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # Authenticates with npm Trusted Publishing (OIDC via id-token: write); no token needed
       - name: Publish
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
