@@ -385,9 +385,19 @@ describe('TemplateBuilder', () => {
       expect(result).toBe('<p>World</p>');
     });
 
-    it('should default to Handlebars for unknown handler', async () => {
+    it('should reject unknown handlers instead of falling back silently', async () => {
       const builder = new TemplateBuilder('UNKNOWN');
-      const result = await builder.render('Hello {{name}}', {
+      await expect(
+        builder.render('Hello {{name}}', { name: 'World' })
+      ).rejects.toThrow(/Unknown template engine "UNKNOWN".*EJS/);
+      await expect(
+        builder.renderFile('missing.ejs', { name: 'World' })
+      ).rejects.toThrow(/Unknown template engine/);
+    });
+
+    it('should match built-in engine names case-insensitively', async () => {
+      const builder = new TemplateBuilder('ejs');
+      const result = await builder.render('Hello <%= name %>', {
         name: 'World'
       });
       expect(result).toBe('Hello World');

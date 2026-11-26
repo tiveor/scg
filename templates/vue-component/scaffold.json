@@ -1,6 +1,6 @@
 {
   "engine": "EJS",
-  "templateDir": "./templates/vue-component",
+  "templateDir": ".",
   "outputDir": "./src/components",
   "variables": {
     "name": "MyComponent"

@@ -19,18 +19,35 @@ export interface ScaffoldOptions {
   templateDir: string;
   /** Output directory pattern (supports `{{variable}}` interpolation). */
   outputDir: string;
-  /** Variables for template rendering and path interpolation. */
-  variables: Record<string, string>;
+  /**
+   * Variables for template rendering and path interpolation.
+   * Any value can be passed to templates; only strings, numbers and booleans
+   * can be interpolated into paths.
+   */
+  variables: Record<string, unknown>;
   /** List of files to generate. */
   structure: ScaffoldFile[];
   /** If `true`, returns the file list without writing files. */
   dryRun?: boolean;
+  /**
+   * If `true`, existing files whose content differs from the rendered output
+   * are overwritten. Defaults to `false`: such files are left untouched and
+   * reported in {@link ScaffoldResult.skipped}.
+   */
+  overwrite?: boolean;
 }
 
 /** Result of a scaffold generation operation. */
 export interface ScaffoldResult {
-  /** List of file paths that were created (or would be created in dry-run mode). */
+  /** File paths that were written (or would be written in dry-run mode). */
   files: string[];
+  /**
+   * Existing files left untouched because their content differs from the
+   * rendered output and `overwrite` was not set.
+   */
+  skipped: string[];
+  /** Existing files whose content already matches the rendered output. */
+  unchanged: string[];
   /** Whether this was a dry-run execution. */
   dryRun: boolean;
 }
@@ -40,6 +57,7 @@ export interface ScaffoldResult {
  *
  * Reads template files, renders them with the specified engine, and writes
  * the output to a directory structure with variable-interpolated paths.
+ * Existing files are never overwritten unless `overwrite: true` is passed.
  *
  * @example
  * ```typescript
@@ -55,7 +73,8 @@ export interface ScaffoldResult {
  *   ]
  * });
  *
- * console.log(result.files); // List of created file paths
+ * console.log(result.files);   // Files written
+ * console.log(result.skipped); // Existing files that were not overwritten
  * ```
  */
 export class Scaffold {
@@ -63,7 +82,10 @@ export class Scaffold {
    * Generates files from a scaffold manifest.
    *
    * @param options - The scaffold configuration
-   * @returns A promise resolving to a {@link ScaffoldResult} with the list of created files
+   * @returns A promise resolving to a {@link ScaffoldResult}
+   * @throws If a variable used in a path is not a primitive, contains a `..`
+   *   segment or is an absolute path, or if an output path would land outside
+   *   the output directory
    */
   static async from(options: ScaffoldOptions): Promise<ScaffoldResult> {
     const {
@@ -72,49 +94,137 @@ export class Scaffold {
       outputDir,
       variables,
       structure,
-      dryRun = false
+      dryRun = false,
+      overwrite = false
     } = options;
 
     const builder = new TemplateBuilder(engine);
-    const resolvedOutputDir = resolveVariables(outputDir, variables);
-    const createdFiles: string[] = [];
+    const interpolatedOutputDir = resolvePathVariables(outputDir, variables);
+    const resolvedOutputDir = path.resolve(interpolatedOutputDir);
+    const result: ScaffoldResult = {
+      files: [],
+      skipped: [],
+      unchanged: [],
+      dryRun
+    };
 
+    // Render everything first so a template error never leaves a half-written scaffold
+    const planned: { outputPath: string; content: string }[] = [];
     for (const file of structure) {
       const templatePath = path.join(templateDir, file.template);
-      const outputFileName = resolveVariables(file.output, variables);
-      const outputPath = path.join(resolvedOutputDir, outputFileName);
+      const outputFileName = resolvePathVariables(file.output, variables);
+      const outputPath = path.join(interpolatedOutputDir, outputFileName);
+      assertInside(resolvedOutputDir, path.resolve(outputPath), file.output);
 
-      if (dryRun) {
-        createdFiles.push(outputPath);
-        continue;
-      }
-
-      const dir = path.dirname(outputPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-
-      const content = await builder.renderFile(
-        templatePath,
-        variables as unknown as Record<string, unknown>,
-        {}
-      );
-      fs.writeFileSync(outputPath, content, 'utf8');
-      createdFiles.push(outputPath);
+      const content = await builder.renderFile(templatePath, variables, {});
+      planned.push({ outputPath, content });
     }
 
-    return { files: createdFiles, dryRun };
+    for (const { outputPath, content } of planned) {
+      if (fs.existsSync(outputPath)) {
+        const existing = fs.readFileSync(outputPath, 'utf8');
+        if (existing === content) {
+          result.unchanged.push(outputPath);
+          continue;
+        }
+        if (!overwrite) {
+          result.skipped.push(outputPath);
+          continue;
+        }
+      }
+
+      if (!dryRun) {
+        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+        fs.writeFileSync(outputPath, content, 'utf8');
+      }
+      result.files.push(outputPath);
+    }
+
+    return result;
+  }
+
+  /**
+   * Reads a scaffold manifest (JSON) from disk.
+   *
+   * A relative `templateDir` is resolved against the manifest's own folder, so
+   * a manifest works no matter which directory the command is run from.
+   * `outputDir` stays relative to the current working directory, which is
+   * where the user wants the files.
+   *
+   * @param manifestPath - Path to the manifest file (e.g. `scaffold.json`)
+   * @returns The parsed manifest options
+   * @throws If the file does not exist or is not valid JSON
+   *
+   * @example
+   * ```typescript
+   * const manifest = Scaffold.loadManifest('templates/react-component/scaffold.json');
+   * await Scaffold.from({ ...manifest, variables: { ...manifest.variables, name: 'Button' } });
+   * ```
+   */
+  static loadManifest(manifestPath: string): ScaffoldOptions {
+    if (!fs.existsSync(manifestPath)) {
+      throw new Error(`Manifest not found: ${manifestPath}`);
+    }
+
+    let manifest: ScaffoldOptions;
+    try {
+      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    } catch (error) {
+      throw new Error(
+        `Invalid JSON in manifest ${manifestPath}: ${(error as Error).message}`
+      );
+    }
+
+    const manifestDir = path.dirname(path.resolve(manifestPath));
+    return {
+      ...manifest,
+      variables: { ...(manifest.variables ?? {}) },
+      templateDir: path.resolve(manifestDir, manifest.templateDir ?? '.')
+    };
   }
 }
 
-/** @internal Replaces `{{key}}` tokens in a string with variable values. */
-function resolveVariables(
+/** @internal Replaces `{{key}}` tokens in a path with safe variable values. */
+function resolvePathVariables(
   template: string,
-  variables: Record<string, string>
+  variables: Record<string, unknown>
 ): string {
   let result = template;
   for (const [key, value] of Object.entries(variables)) {
-    result = StringHelper.replace(result, `{{${key}}}`, value);
+    const token = `{{${key}}}`;
+    if (!result.includes(token)) continue;
+
+    if (
+      typeof value !== 'string' &&
+      typeof value !== 'number' &&
+      typeof value !== 'boolean'
+    ) {
+      throw new Error(
+        `Variable "${key}" is used in a path but is not a string, number or boolean`
+      );
+    }
+    const text = String(value);
+    if (path.isAbsolute(text) || text.split(/[\\/]/).includes('..')) {
+      throw new Error(
+        `Variable "${key}" cannot be used in a path: "${text}" is absolute or contains ".."`
+      );
+    }
+    result = StringHelper.replace(result, token, text);
   }
   return result;
+}
+
+/** @internal Throws if `target` is not inside `root`. */
+function assertInside(root: string, target: string, pattern: string): void {
+  const relative = path.relative(root, target);
+  if (
+    relative === '' ||
+    relative === '..' ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    throw new Error(
+      `Output "${pattern}" resolves outside the output directory (${target})`
+    );
+  }
 }

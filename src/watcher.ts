@@ -14,6 +14,12 @@ export interface WatcherOptions {
   variables: Record<string, unknown>;
   /** File extensions to watch (defaults to `['.ejs', '.hbs', '.handlebars', '.pug']`). */
   extensions?: string[];
+  /**
+   * Extension given to output files whose template name has no inner extension
+   * (e.g. `page.ejs` → `page.html`). Templates named like `Button.tsx.ejs` keep
+   * their inner extension (`Button.tsx`). Defaults to `'.html'`.
+   */
+  outputExtension?: string;
   /** Callback invoked after a file is successfully rebuilt. */
   onRebuild?: (file: string) => void;
   /** Callback invoked when a rebuild error occurs. */
@@ -51,8 +57,9 @@ export class Watcher {
    */
   constructor(options: WatcherOptions) {
     this.options = {
-      extensions: ['.ejs', '.hbs', '.handlebars', '.pug'],
-      ...options
+      ...options,
+      extensions: options.extensions ?? ['.ejs', '.hbs', '.handlebars', '.pug'],
+      outputExtension: options.outputExtension ?? '.html'
     };
   }
 
@@ -84,7 +91,7 @@ export class Watcher {
           this.options.templateDir,
           filename.toString()
         );
-        this.handleChange(filePath);
+        void this.rebuild(filePath);
       });
 
       watcher.on('error', (err) => {
@@ -114,14 +121,23 @@ export class Watcher {
     return this.abortController !== null;
   }
 
-  private async handleChange(filePath: string): Promise<void> {
-    const ext = path.extname(filePath).toLowerCase();
-    if (!this.options.extensions!.includes(ext)) {
-      return;
+  /**
+   * Renders a single template from the watched directory to the output directory.
+   * Called automatically on changes; can also be called directly to build on demand.
+   * Files with an unwatched extension, or that no longer exist, are ignored.
+   * Errors are reported through `onError` instead of being thrown.
+   *
+   * @param filePath - Path to the template file (inside `templateDir`)
+   * @returns A promise resolving to the written output path, or `null` if nothing was written
+   */
+  async rebuild(filePath: string): Promise<string | null> {
+    const ext = path.extname(filePath);
+    if (!this.options.extensions!.includes(ext.toLowerCase())) {
+      return null;
     }
 
     if (!fs.existsSync(filePath)) {
-      return;
+      return null;
     }
 
     try {
@@ -133,7 +149,11 @@ export class Watcher {
       );
 
       const relativePath = path.relative(this.options.templateDir, filePath);
-      const outputName = relativePath.replace(ext, '.html');
+      // Strip only the trailing template extension (not its first occurrence)
+      const withoutTemplateExt = relativePath.slice(0, -ext.length);
+      const outputName = path.extname(withoutTemplateExt)
+        ? withoutTemplateExt
+        : withoutTemplateExt + this.options.outputExtension;
       const outputPath = path.join(this.options.outputDir, outputName);
 
       const outputDir = path.dirname(outputPath);
@@ -143,8 +163,10 @@ export class Watcher {
 
       fs.writeFileSync(outputPath, content, 'utf8');
       this.options.onRebuild?.(outputPath);
+      return outputPath;
     } catch (error) {
       this.options.onError?.(error as Error, filePath);
+      return null;
     }
   }
 }

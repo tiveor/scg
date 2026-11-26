@@ -30,6 +30,7 @@ export class ParamHelper {
 
   /**
    * Parses all `--key=value` parameters from `process.argv` into an object.
+   * Keys may contain letters, digits, `-` and `_` (e.g. `--dry-run=true`).
    * Surrounding quotes on values are stripped automatically.
    *
    * @returns An object mapping parameter names to their string values
@@ -44,7 +45,7 @@ export class ParamHelper {
   static getParams(): Record<string, string> {
     const paramsObj: Record<string, string> = {};
     process.argv.slice(2).forEach((element) => {
-      const matches = element.match('--([a-zA-Z0-9]+)=(.*)');
+      const matches = element.match(/^--([a-zA-Z0-9_-]+)=(.*)$/s);
       if (matches) {
         paramsObj[matches[1]] = matches[2]
           .replace(/^['"]/, '')

@@ -1,6 +1,6 @@
 {
   "engine": "EJS",
-  "templateDir": "./templates/github-action",
+  "templateDir": ".",
   "outputDir": "./.github/workflows",
   "variables": {
     "name": "CI",

@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { TemplateBuilder } from './template_builder.js';
-import { type TemplateHandler } from './template_handlers.js';
+import {
+  engineFromExtension,
+  knownTemplateExtensions,
+  type TemplateHandler
+} from './template_handlers.js';
 
 /** A function that transforms a string, optionally returning a promise. */
 export type TransformFn = (content: string) => string | Promise<string>;
@@ -58,6 +62,7 @@ export class Pipeline {
    * @param engine - Template engine name (auto-detected if omitted)
    * @param options - Optional engine-specific options
    * @returns This pipeline instance for chaining
+   * @throws If no engine is given and the file extension is not a known template extension
    */
   fromTemplate(
     templatePath: string,
@@ -65,8 +70,14 @@ export class Pipeline {
     engine?: TemplateHandler | string,
     options?: Record<string, unknown>
   ): Pipeline {
-    const ext = engine ?? extToEngine(templatePath);
-    const builder = new TemplateBuilder(ext);
+    const resolvedEngine = engine ?? engineFromExtension(templatePath);
+    if (!resolvedEngine) {
+      throw new Error(
+        `Cannot infer the template engine for "${templatePath}". ` +
+          `Pass it explicitly or use one of: ${knownTemplateExtensions().join(', ')}.`
+      );
+    }
+    const builder = new TemplateBuilder(resolvedEngine);
     this.contentPromise = builder.renderFile(templatePath, data, options);
     this.content = null;
     return this;
@@ -150,18 +161,3 @@ export class Pipeline {
 }
 
 /** @internal Maps file extensions to engine names. */
-function extToEngine(filePath: string): string {
-  const ext = path.extname(filePath).toLowerCase();
-  switch (ext) {
-    case '.ejs':
-      return 'EJS';
-    case '.hbs':
-    case '.handlebars':
-      return 'HANDLEBARS';
-    case '.pug':
-    case '.jade':
-      return 'PUG';
-    default:
-      return 'HANDLEBARS';
-  }
-}
