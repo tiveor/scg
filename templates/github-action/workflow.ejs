@@ -1,3 +1,4 @@
+<%_ const pnpm = packageManager === 'pnpm' _%>
 name: <%= name %>
 
 on:
@@ -12,22 +13,26 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [<%= nodeVersions.join(', ') %>]
 
     steps:
       - uses: actions/checkout@v4
+<%_ if (pnpm) { _%>
+
+      - uses: pnpm/action-setup@v4
+<%_ } _%>
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: '<%= packageManager %>'
 
       - name: Install dependencies
-        run: npm ci
+        run: <%= pnpm ? 'pnpm install --frozen-lockfile' : 'npm ci' %>
 
       - name: Test
-        run: npm test
+        run: <%= packageManager %> test
 
       - name: Build
-        run: npm run build
+        run: <%= packageManager %> run build

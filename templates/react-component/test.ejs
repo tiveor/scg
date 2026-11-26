@@ -1,14 +1,15 @@
+<%_ const Name = h.pascal(name) _%>
 import { render, screen } from '@testing-library/react';
-import { <%= name %> } from './<%= name %>';
+import { <%= Name %> } from './<%= Name %>';
 
-describe('<%= name %>', () => {
+describe('<%= Name %>', () => {
   it('renders children', () => {
-    render(<<%= name %>>Hello</<%= name %>>);
+    render(<<%= Name %>>Hello</<%= Name %>>);
     expect(screen.getByText('Hello')).toBeInTheDocument();
   });
 
-  it('accepts className prop', () => {
-    const { container } = render(<<%= name %> className="custom" />);
+  it('accepts a className', () => {
+    const { container } = render(<<%= Name %> className="custom" />);
     expect(container.firstChild).toHaveClass('custom');
   });
 });

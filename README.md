@@ -20,22 +20,35 @@ npm install @tiveor/scg
 
 ## Quick Start
 
+Generate a React component in one command, no install needed:
+
+```bash
+npx @tiveor/scg new react-component Button
+```
+
+```
+✔ created    src/components/Button/Button.tsx
+✔ created    src/components/Button/Button.module.css
+✔ created    src/components/Button/Button.test.tsx
+✔ created    src/components/Button/index.ts
+```
+
+In a terminal, SCG asks for anything you didn't pass. In CI or from an AI agent it never waits: pass values as flags (`--withTest=false`) or `--yes` to accept the defaults, and it tells you exactly which flags are missing.
+
+```bash
+npx @tiveor/scg list                 # see every generator
+npx @tiveor/scg init widget          # create your own in .scg/widget/
+npx @tiveor/scg new widget PriceTag  # and run it
+```
+
+As a library:
+
 ```typescript
 // ESM
-import {
-  StringHelper,
-  FileHelper,
-  CommandHelper,
-  ParamHelper,
-  TemplateBuilder,
-  Pipeline,
-  Scaffold,
-  Watcher,
-  TEMPLATE_HANDLERS
-} from '@tiveor/scg';
+import { Scaffold, TemplateBuilder, Casing } from '@tiveor/scg';
 
 // CommonJS
-const { TemplateBuilder, TEMPLATE_HANDLERS } = require('@tiveor/scg');
+const { Scaffold, TemplateBuilder, Casing } = require('@tiveor/scg');
 ```
 
 ## API Reference
@@ -111,12 +124,12 @@ import { Scaffold } from '@tiveor/scg';
 const result = await Scaffold.from({
   engine: 'EJS',
   templateDir: './templates/react-component',
-  outputDir: './src/components/{{name}}',
-  variables: { name: 'UserProfile', style: 'module' },
+  outputDir: './src/components/{{name:pascal}}',
+  variables: { name: 'user profile', cssModule: true, withTest: true },
   structure: [
-    { template: 'component.ejs', output: '{{name}}.tsx' },
-    { template: 'styles.ejs',    output: '{{name}}.module.css' },
-    { template: 'test.ejs',      output: '{{name}}.test.tsx' },
+    { template: 'component.ejs', output: '{{name:pascal}}.tsx' },
+    { template: 'styles.ejs',    output: '{{name:pascal}}.module.css', when: 'cssModule' },
+    { template: 'test.ejs',      output: '{{name:pascal}}.test.tsx', when: 'withTest' },
     { template: 'index.ejs',     output: 'index.ts' },
   ]
 });
@@ -240,56 +253,108 @@ const params = ParamHelper.getParams();
 
 ## CLI
 
-SCG includes a command-line interface for scaffolding and template rendering.
-
 ```bash
-# Initialize a scaffold manifest
-npx @tiveor/scg init
+# Run a generator by name (asks for missing values in a terminal)
+npx @tiveor/scg new react-component Button
 
-# Generate files from a scaffold manifest
-npx @tiveor/scg generate --manifest=scaffold.json --vars=name=Button
+# Pass values as flags; --yes uses defaults for the rest and never asks
+npx @tiveor/scg new react-component Button --cssModule=false --withTest=false --yes
+
+# List generators: your project's (.scg/) first, then the built-in ones
+npx @tiveor/scg list
+
+# Create a project generator in .scg/<name>/ (manifest + example template)
+npx @tiveor/scg init widget
 
 # Preview without writing files
-npx @tiveor/scg generate --manifest=scaffold.json --vars=name=Button --dry-run
+npx @tiveor/scg new react-component Button --dry-run
 
 # Existing files with local changes are never overwritten unless you pass --force
-npx @tiveor/scg generate --manifest=scaffold.json --vars=name=Button --force
+npx @tiveor/scg new react-component Button --force
 
-# Typed variables (booleans, arrays, values with commas) as JSON
-npx @tiveor/scg generate --vars='{"name":"Button","withTests":true}'
+# Run a manifest by path; values via --vars (pairs or JSON)
+npx @tiveor/scg generate --manifest=scaffold.json --vars='{"name":"Button","withTest":true}'
 
 # Render a single template
-npx @tiveor/scg render template.ejs --data='{"name":"World"}'
-
-# Render and save to file
 npx @tiveor/scg render template.ejs --data='{"name":"World"}' --output=output.html
 ```
 
-## Predefined Template Packs
+Exit codes: `0` success, `1` error (missing input, invalid value, unknown generator), `130` cancelled with Ctrl+C (nothing is written).
 
-SCG ships with ready-to-use template packs in the `templates/` directory:
+## Your Own Generators
 
-| Pack | Files | Description |
-|------|-------|-------------|
-| **react-component** | component, test, styles, index | React TSX component with CSS modules |
-| **vue-component** | component, test | Vue 3 SFC with `<script setup>` |
-| **express-route** | routes, controller, service | Express REST route with MVC pattern |
-| **github-action** | workflow | GitHub Actions CI workflow |
+`scg new <name>` looks for `.scg/<name>/scaffold.json` in the current folder first, then for a built-in pack. A project generator with the same name as a built-in one replaces it, so you can customize `react-component` for your team.
 
-Each pack includes a `scaffold.json` manifest. Use them with the CLI:
-
-```bash
-npx @tiveor/scg generate --manifest=templates/react-component/scaffold.json --vars=name=Button,style=module
+```json
+{
+  "name": "react-component",
+  "description": "React component with test",
+  "engine": "EJS",
+  "templateDir": ".",
+  "outputDir": "src/components/{{name:pascal}}",
+  "prompts": [
+    { "name": "name", "type": "text", "message": "Component name",
+      "positional": true, "required": true, "pattern": "^[A-Za-z][A-Za-z0-9 _-]*$" },
+    { "name": "withTest", "type": "confirm", "message": "Add a test?", "default": true }
+  ],
+  "structure": [
+    { "template": "component.ejs", "output": "{{name:pascal}}.tsx" },
+    { "template": "test.ejs", "output": "{{name:pascal}}.test.tsx", "when": "withTest" }
+  ]
+}
 ```
 
-Or programmatically:
+| Field | Meaning |
+|---|---|
+| `engine` | `EJS`, `HANDLEBARS`, `PUG` or a registered custom engine |
+| `templateDir` | Folder with the templates, relative to the manifest |
+| `outputDir` | Where files go, relative to where you run the command |
+| `prompts[]` | Inputs: `name`, `type` (`text`, `confirm`, `select`, `multiselect`, `number`), `message`, `default`, `choices`, `required`, `positional` (one per manifest), `pattern` (text only), `description` |
+| `structure[]` | Files: `template`, `output`, and optional `when` (`"withTest"` or `"!withTest"`) |
+| `variables` | Optional fixed values / defaults (older manifests use only this) |
+
+Values are taken from, in order: flags (`--name=Button`, or `--vars`), the positional argument, an interactive answer, the `default`. Flag values are converted to the prompt's type (`--withTest=no` → `false`, `--features=a,b` → `["a","b"]`) and checked against `choices` and `pattern`. The manifest is validated when it is loaded, and every problem is reported at once.
+
+### Casing helpers
+
+| Modifier | `user profile` → |
+|---|---|
+| `pascal` | `UserProfile` |
+| `camel` | `userProfile` |
+| `kebab` | `user-profile` |
+| `snake` | `user_profile` |
+| `constant` | `USER_PROFILE` |
+| `title` | `User Profile` |
+| `lower` / `upper` | `user profile` / `USER PROFILE` |
+| `plural` | `user profiles` (simple English rules: `category` → `categories`) |
+
+- In paths: `{{name:pascal}}` (`{{name}}` keeps the raw value).
+- In EJS and Pug templates: `<%= h.pascal(name) %>`, `h.kebab(name)`, ...
+- In Handlebars templates: `{{pascal name}}`. A variable with the same name as a helper (e.g. `title`) wins.
+- In code: `Casing.pascal('user profile')`.
+
+## Built-in Generators
+
+| Generator | Creates | Inputs |
+|---|---|---|
+| **react-component** | `Name.tsx`, `index.ts`, optional `Name.module.css` and `Name.test.tsx` | `name`, `cssModule`, `withTest` |
+| **vue-component** | `Name.vue`, optional `Name.test.ts` | `name`, `withTest` |
+| **express-route** | `name.routes.ts`, `name.controller.ts`, `name.service.ts` | `name` |
+| **github-action** | `.github/workflows/name.yml` | `name`, `branch`, `nodeVersions`, `packageManager` |
+
+Programmatically:
 
 ```typescript
-import { Scaffold } from '@tiveor/scg';
+import { resolveGenerator, loadManifest, resolveInputs, Scaffold } from '@tiveor/scg';
 
-// templateDir in a manifest is resolved relative to the manifest file
-const manifest = Scaffold.loadManifest('templates/react-component/scaffold.json');
-await Scaffold.from({ ...manifest, variables: { name: 'Button', style: 'module' } });
+const generator = resolveGenerator('react-component');
+const manifest = loadManifest(generator.manifestPath);
+const variables = await resolveInputs(manifest, { name: 'Button', withTest: false }, {
+  generatorName: generator.name,
+  interactive: false
+});
+const result = await Scaffold.from({ ...manifest, variables });
+console.log(result.files);
 ```
 
 ## Examples & Demos

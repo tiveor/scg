@@ -113,14 +113,6 @@ describe('scg render', () => {
   });
 });
 
-describe('scg init', () => {
-  it('does not overwrite an existing scaffold.json', async () => {
-    fs.writeFileSync('scaffold.json', '{"mine":true}');
-    expect(await runCli(['init'], io)).toBe(1);
-    expect(fs.readFileSync('scaffold.json', 'utf8')).toBe('{"mine":true}');
-  });
-});
-
 describe('parseVars', () => {
   it('parses comma-separated pairs', () => {
     expect(parseVars('name=Button,style=module')).toEqual({

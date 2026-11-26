@@ -1,2 +1,3 @@
-export { <%= name %> } from './<%= name %>';
-export type { <%= name %>Props } from './<%= name %>';
+<%_ const Name = h.pascal(name) _%>
+export { <%= Name %> } from './<%= Name %>';
+export type { <%= Name %>Props } from './<%= Name %>';

@@ -1,14 +1,24 @@
 import fs from 'fs';
 import path from 'path';
 import { TemplateBuilder } from './template_builder.js';
-import { StringHelper } from './string_helper.js';
+import {
+  loadManifest,
+  PATH_TOKEN,
+  type GeneratorManifest
+} from './manifest.js';
+import { Casing, isCaseModifier, CASE_MODIFIERS } from './casing.js';
 
 /** Defines a single file in a scaffold structure. */
 export interface ScaffoldFile {
   /** Relative path to the template file (within `templateDir`). */
   template: string;
-  /** Output filename pattern (supports `{{variable}}` interpolation). */
+  /** Output filename pattern (supports `{{variable}}` and `{{variable:modifier}}`). */
   output: string;
+  /**
+   * Generate this file only when the variable is truthy (`"withTest"`)
+   * or falsy (`"!withTest"`).
+   */
+  when?: string;
 }
 
 /** Configuration options for scaffold generation. */
@@ -108,15 +118,21 @@ export class Scaffold {
       dryRun
     };
 
+    // Casing helpers are available as `h` unless the user defines their own `h`
+    const data: Record<string, unknown> =
+      'h' in variables ? variables : { h: Casing, ...variables };
+
     // Render everything first so a template error never leaves a half-written scaffold
     const planned: { outputPath: string; content: string }[] = [];
     for (const file of structure) {
+      if (!shouldGenerate(file.when, variables)) continue;
+
       const templatePath = path.join(templateDir, file.template);
       const outputFileName = resolvePathVariables(file.output, variables);
       const outputPath = path.join(interpolatedOutputDir, outputFileName);
       assertInside(resolvedOutputDir, path.resolve(outputPath), file.output);
 
-      const content = await builder.renderFile(templatePath, variables, {});
+      const content = await builder.renderFile(templatePath, data, {});
       planned.push({ outputPath, content });
     }
 
@@ -153,7 +169,7 @@ export class Scaffold {
    *
    * @param manifestPath - Path to the manifest file (e.g. `scaffold.json`)
    * @returns The parsed manifest options
-   * @throws If the file does not exist or is not valid JSON
+   * @throws If the file does not exist, is not valid JSON, or fails validation
    *
    * @example
    * ```typescript
@@ -161,57 +177,65 @@ export class Scaffold {
    * await Scaffold.from({ ...manifest, variables: { ...manifest.variables, name: 'Button' } });
    * ```
    */
-  static loadManifest(manifestPath: string): ScaffoldOptions {
-    if (!fs.existsSync(manifestPath)) {
-      throw new Error(`Manifest not found: ${manifestPath}`);
-    }
-
-    let manifest: ScaffoldOptions;
-    try {
-      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    } catch (error) {
-      throw new Error(
-        `Invalid JSON in manifest ${manifestPath}: ${(error as Error).message}`
-      );
-    }
-
-    const manifestDir = path.dirname(path.resolve(manifestPath));
-    return {
-      ...manifest,
-      variables: { ...(manifest.variables ?? {}) },
-      templateDir: path.resolve(manifestDir, manifest.templateDir ?? '.')
-    };
+  static loadManifest(manifestPath: string): GeneratorManifest {
+    return loadManifest(manifestPath);
   }
+
 }
 
-/** @internal Replaces `{{key}}` tokens in a path with safe variable values. */
+/** @internal Evaluates a `when` condition (`"name"` or `"!name"`). */
+function shouldGenerate(
+  when: string | undefined,
+  variables: Record<string, unknown>
+): boolean {
+  if (!when) return true;
+  const negated = when.startsWith('!');
+  const value = Boolean(variables[negated ? when.slice(1) : when]);
+  return negated ? !value : value;
+}
+
+/**
+ * @internal Replaces `{{name}}` and `{{name:modifier}}` tokens in a path with
+ * safe variable values. Tokens for unknown variables are left untouched.
+ */
 function resolvePathVariables(
   template: string,
   variables: Record<string, unknown>
 ): string {
-  let result = template;
-  for (const [key, value] of Object.entries(variables)) {
-    const token = `{{${key}}}`;
-    if (!result.includes(token)) continue;
+  return template.replace(
+    PATH_TOKEN,
+    (token: string, key: string, modifier?: string) => {
+      if (!(key in variables)) return token;
 
-    if (
-      typeof value !== 'string' &&
-      typeof value !== 'number' &&
-      typeof value !== 'boolean'
-    ) {
-      throw new Error(
-        `Variable "${key}" is used in a path but is not a string, number or boolean`
-      );
+      const value = variables[key];
+      if (
+        typeof value !== 'string' &&
+        typeof value !== 'number' &&
+        typeof value !== 'boolean'
+      ) {
+        throw new Error(
+          `Variable "${key}" is used in a path but is not a string, number or boolean`
+        );
+      }
+
+      let text = String(value);
+      if (modifier) {
+        if (!isCaseModifier(modifier)) {
+          throw new Error(
+            `Path "${template}" uses unknown modifier "${modifier}" (use ${CASE_MODIFIERS.join(', ')})`
+          );
+        }
+        text = Casing[modifier](text);
+      }
+
+      if (path.isAbsolute(text) || text.split(/[\\/]/).includes('..')) {
+        throw new Error(
+          `Variable "${key}" cannot be used in a path: "${text}" is absolute or contains ".."`
+        );
+      }
+      return text;
     }
-    const text = String(value);
-    if (path.isAbsolute(text) || text.split(/[\\/]/).includes('..')) {
-      throw new Error(
-        `Variable "${key}" cannot be used in a path: "${text}" is absolute or contains ".."`
-      );
-    }
-    result = StringHelper.replace(result, token, text);
-  }
-  return result;
+  );
 }
 
 /** @internal Throws if `target` is not inside `root`. */

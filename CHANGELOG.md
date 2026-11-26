@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `scg new <generator> [value]`: run a generator by name. Asks for missing values in an interactive terminal (with `@clack/prompts`); in CI or from agents it never waits and lists the missing flags. `--yes` uses defaults; Ctrl+C exits with code 130 without writing.
+- `scg list`: project generators (`.scg/<name>/`) and built-in packs, with descriptions. Project generators override built-in ones with the same name.
+- `scg init [name]`: creates a working project generator in `.scg/<name>/`.
+- Typed `prompts` in manifests (`text`, `confirm`, `select`, `multiselect`, `number`) with `default`, `choices`, `required`, `positional`, `pattern`. Flag values are converted and validated.
+- Manifest validation that reports every problem with its JSON path (`loadManifest`, `validateManifest`, `ManifestError`).
+- Conditional files: `"when": "withTest"` / `"!withTest"`.
+- Casing helpers (`pascal`, `camel`, `kebab`, `snake`, `constant`, `title`, `lower`, `upper`, `plural`): `{{name:pascal}}` in paths, `h.pascal(name)` in EJS/Pug, `{{pascal name}}` in Handlebars, `Casing` in code.
+- Per-file output: `✔ created`, `= unchanged`, `! skipped`.
+- Library exports: `Casing`, `listGenerators`, `resolveGenerator`, `resolveInputs`, `coerce`, `MissingInputError`, `PromptCancelledError` and their types.
+
+### Changed
+- Built-in packs have names, descriptions and typed prompts, and use casing (`user card` → `UserCard.tsx`). The React pack replaces the `style` variable with a `cssModule` confirm; React and Vue tests are optional (`withTest`). The GitHub Action pack asks for Node versions (22, 24, 26) and the package manager.
+- `scg init` creates `.scg/<name>/` instead of `scaffold.json` in the current folder.
+- `scg generate` applies prompt defaults and type conversion, and prints the per-file output.
+
 ## [0.6.0] - 2026-11-26
 
 ### Fixed

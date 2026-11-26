@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { <%= name %>Service } from './<%= name %>.service';
+import { <%= h.pascal(name) %>Service } from './<%= h.kebab(name) %>.service';
 
-const service = new <%= name %>Service();
+const service = new <%= h.pascal(name) %>Service();
 
 export async function getAll(req: Request, res: Response, next: NextFunction) {
   try {
@@ -16,7 +16,7 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const item = await service.findById(req.params.id);
     if (!item) {
-      res.status(404).json({ message: '<%= name %> not found' });
+      res.status(404).json({ message: '<%= h.title(name) %> not found' });
       return;
     }
     res.json(item);

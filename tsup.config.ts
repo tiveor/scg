@@ -7,5 +7,7 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   outDir: 'dist',
-  target: 'node22'
+  target: 'node22',
+  // Provide import.meta.url in the CJS build (used to find the bundled templates)
+  shims: true
 });

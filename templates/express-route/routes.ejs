@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAll, getById, create } from './<%= name %>.controller';
+import { getAll, getById, create } from './<%= h.kebab(name) %>.controller';
 
 const router = Router();
 
