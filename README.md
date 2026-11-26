@@ -51,6 +51,34 @@ import { Scaffold, TemplateBuilder, Casing } from '@tiveor/scg';
 const { Scaffold, TemplateBuilder, Casing } = require('@tiveor/scg');
 ```
 
+## Use with AI Agents (MCP)
+
+`scg mcp` serves your generators to Claude Code, Cursor or any MCP client. Each generator becomes a tool (`generate_react-component`, `generate_widget`...) with a JSON Schema built from its prompts, so the agent calls the generator instead of writing the boilerplate by hand, and agent-written code comes out the same as yours.
+
+Claude Code (`--scope project` writes `.mcp.json`, so the whole team gets it):
+
+```bash
+claude mcp add --scope project scg -- npx -y @tiveor/scg mcp
+```
+
+Cursor (`.cursor/mcp.json`) and other clients that use the same format:
+
+```json
+{
+  "mcpServers": {
+    "scg": { "command": "npx", "args": ["-y", "@tiveor/scg", "mcp"] }
+  }
+}
+```
+
+What the agent gets:
+
+- One tool per generator in `.scg/` plus the built-in packs. The description lists the files it creates. A generator you add mid-session shows up on the next tool listing.
+- Inputs typed from the prompts: `confirm` is a boolean, `select` an enum, `multiselect` an array. Missing or invalid values come back as a tool error with the same message as the CLI, so the agent fixes the call and retries. Nothing is written in that case.
+- `"dry-run": true` to preview. Files with local changes are never overwritten unless the call passes `"force": true`.
+
+The server runs in the client's working directory (your project) and writes only protocol messages to stdout.
+
 ## API Reference
 
 Full API documentation is available via TypeDoc:
@@ -277,6 +305,9 @@ npx @tiveor/scg generate --manifest=scaffold.json --vars='{"name":"Button","with
 
 # Render a single template
 npx @tiveor/scg render template.ejs --data='{"name":"World"}' --output=output.html
+
+# Serve the generators to AI agents over MCP (stdio)
+npx @tiveor/scg mcp
 ```
 
 Exit codes: `0` success, `1` error (missing input, invalid value, unknown generator), `130` cancelled with Ctrl+C (nothing is written).
