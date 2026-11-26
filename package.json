@@ -35,7 +35,7 @@
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "format:check": "prettier --check 'src/**/*.ts' 'test/**/*.ts'",
     "docs": "typedoc",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build",
     "example": "node example/index.js"
   },
   "engines": {

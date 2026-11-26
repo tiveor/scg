@@ -43,7 +43,7 @@ const { TemplateBuilder, TEMPLATE_HANDLERS } = require('@tiveor/scg');
 Full API documentation is available via TypeDoc:
 
 ```bash
-npm run docs    # Generates HTML docs in ./docs
+pnpm docs            # Generates HTML docs in ./docs
 ```
 
 ### TemplateBuilder
@@ -291,20 +291,20 @@ See **[EXAMPLES.md](EXAMPLES.md)** for full documentation on all runnable exampl
 ## Running Tests
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## Development
 
 ```bash
-npm run build        # Build CJS + ESM + .d.ts
-npm run dev          # Build in watch mode
-npm test             # Run tests
-npm run test:watch   # Run tests in watch mode
-npm run lint         # Lint source code
-npm run typecheck    # Type check with tsc
-npm run format       # Format with Prettier
-npm run docs         # Generate API docs with TypeDoc
+pnpm build           # Build CJS + ESM + .d.ts
+pnpm dev             # Build in watch mode
+pnpm test            # Run tests
+pnpm test:watch      # Run tests in watch mode
+pnpm lint            # Lint source code
+pnpm typecheck       # Type check with tsc
+pnpm format          # Format with Prettier
+pnpm docs            # Generate API docs with TypeDoc
 ```
 
 ## Template Engine Documentation
