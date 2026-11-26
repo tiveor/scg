@@ -1,6 +1,6 @@
 {
   "engine": "EJS",
-  "templateDir": "./templates/express-route",
+  "templateDir": ".",
   "outputDir": "./src/routes/{{name}}",
   "variables": {
     "name": "User"

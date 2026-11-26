@@ -69,12 +69,9 @@ export class CommandHelper {
             return;
           }
 
-          if (stderr) {
-            resolve(stderr);
-            return;
-          }
-
-          resolve(stdout);
+          // Many CLIs (git, npm) write progress to stderr even on success,
+          // so stdout wins whenever there is any
+          resolve(stdout || stderr);
         }
       );
     });

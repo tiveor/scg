@@ -1,6 +1,6 @@
 {
   "engine": "EJS",
-  "templateDir": "./templates/react-component",
+  "templateDir": ".",
   "outputDir": "./src/components/{{name}}",
   "variables": {
     "name": "MyComponent",

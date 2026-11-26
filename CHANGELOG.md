@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Bundled template packs now work from any folder: a relative `templateDir` in a manifest is resolved against the manifest file, not the current directory (the README `npx` example failed with `ENOENT`). Bundled manifests now use `"templateDir": "."`. The `express-route` pack never worked outside the repo for the same reason.
+- `scg generate` / `Scaffold.from()` no longer overwrite existing files with local changes. They are reported in `result.skipped`; pass `--force` / `overwrite: true` to replace them. Identical files are reported in `result.unchanged`.
+- `Scaffold.from()` renders every template before writing anything, so a broken template no longer leaves a half-written scaffold. Dry runs now render too and report conflicts.
+- Variables used in paths can no longer escape the output directory (`..` segments and absolute paths are rejected), and manifest outputs must stay inside `outputDir`.
+- An unknown template engine now fails with a clear error listing the available engines, instead of silently rendering with Handlebars (which printed `<%= name %>` untouched). `scg render` and `Pipeline.fromTemplate()` fail when the engine cannot be inferred from the extension.
+- `CommandHelper.run()` returns stdout whenever there is any; stderr is only returned when stdout is empty (git and npm write progress to stderr, which used to hide the real output).
+- `ParamHelper.getParams()` accepts keys with `-` and `_` (`--dry-run=true`).
+- `Watcher` keeps the real output extension (`Button.tsx.ejs` → `Button.tsx`) and strips only the trailing template extension. Templates without an inner extension still produce `.html` (configurable with `outputExtension`).
+- `scg init` no longer overwrites an existing `scaffold.json`.
+
+### Added
+- `Scaffold.loadManifest(path)` to read a manifest with `templateDir` resolved relative to it.
+- `--force` flag for `scg generate`; `--vars` accepts a JSON object (typed values) and escaped commas (`\,`).
+- `ScaffoldOptions.overwrite`, `ScaffoldResult.skipped` and `ScaffoldResult.unchanged`.
+- `Watcher.rebuild(file)` to render one template on demand, and the `outputExtension` option.
+- `engineFromExtension()` helper; built-in engine names are now case-insensitive (`ejs` works like `EJS`).
+- Scaffold variables accept any value (booleans, arrays, objects) for templates; only primitives can be used in paths.
+
+### Changed
+- **Breaking:** `TemplateBuilder` no longer falls back to Handlebars for unknown engine names.
+- **Breaking:** `Scaffold.from()` skips existing files that differ instead of overwriting them.
+- **Breaking:** Node.js 20 or newer is required (Node 18 reached end of life). CI runs on Node 20, 22 and 24.
+
 ## [0.5.0] - 2026-02-11
 
 ### Added

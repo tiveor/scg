@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@tiveor/scg.svg)](https://www.npmjs.com/package/@tiveor/scg)
 [![CI](https://github.com/tiveor/scg/actions/workflows/ci.yml/badge.svg)](https://github.com/tiveor/scg/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
 
 A utility library for code generation and template processing in Node.js. Provides helpers for template rendering (EJS, Handlebars, Pug), string manipulation, file operations, command execution, CLI parameter parsing, a scaffold engine, a template pipeline, and a file watcher.
@@ -121,10 +121,15 @@ const result = await Scaffold.from({
   ]
 });
 
-console.log(result.files); // List of created file paths
+console.log(result.files);     // Files written
+console.log(result.skipped);   // Existing files with local changes, left untouched
+console.log(result.unchanged); // Existing files already identical to the output
 
 // Preview without writing files
 const preview = await Scaffold.from({ ...options, dryRun: true });
+
+// Replace existing files that differ from the templates
+await Scaffold.from({ ...options, overwrite: true });
 ```
 
 ### Watcher
@@ -247,6 +252,12 @@ npx @tiveor/scg generate --manifest=scaffold.json --vars=name=Button
 # Preview without writing files
 npx @tiveor/scg generate --manifest=scaffold.json --vars=name=Button --dry-run
 
+# Existing files with local changes are never overwritten unless you pass --force
+npx @tiveor/scg generate --manifest=scaffold.json --vars=name=Button --force
+
+# Typed variables (booleans, arrays, values with commas) as JSON
+npx @tiveor/scg generate --vars='{"name":"Button","withTests":true}'
+
 # Render a single template
 npx @tiveor/scg render template.ejs --data='{"name":"World"}'
 
@@ -275,8 +286,9 @@ Or programmatically:
 
 ```typescript
 import { Scaffold } from '@tiveor/scg';
-import manifest from './templates/react-component/scaffold.json';
 
+// templateDir in a manifest is resolved relative to the manifest file
+const manifest = Scaffold.loadManifest('templates/react-component/scaffold.json');
 await Scaffold.from({ ...manifest, variables: { name: 'Button', style: 'module' } });
 ```
 

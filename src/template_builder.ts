@@ -88,12 +88,18 @@ export class TemplateBuilder {
 
   /**
    * Retrieves a registered engine by name (custom engines take precedence over built-in).
+   * Built-in engine names are matched case-insensitively.
    *
    * @param name - The engine name to look up
    * @returns The engine implementation, or `undefined` if not found
    */
   static getEngine(name: string): TemplateEngine | undefined {
-    return customEngines[name] ?? builtInEngines[name];
+    return (
+      customEngines[name] ??
+      builtInEngines[name] ??
+      // Built-in engine names are case-insensitive ('ejs' works like 'EJS')
+      (typeof name === 'string' ? builtInEngines[name.toUpperCase()] : undefined)
+    );
   }
 
   /**
@@ -115,10 +121,14 @@ export class TemplateBuilder {
   }
 
   private resolveEngine(): TemplateEngine {
-    const engine =
-      customEngines[this.templateHandler] ??
-      builtInEngines[this.templateHandler] ??
-      builtInEngines[TEMPLATE_HANDLERS.HANDLEBARS];
+    const engine = TemplateBuilder.getEngine(this.templateHandler);
+    if (!engine) {
+      throw new Error(
+        `Unknown template engine "${this.templateHandler}". ` +
+          `Available engines: ${TemplateBuilder.getRegisteredEngines().join(', ')}. ` +
+          'Register custom engines with TemplateBuilder.registerEngine().'
+      );
+    }
     return engine;
   }
 
@@ -129,13 +139,18 @@ export class TemplateBuilder {
    * @param data - Data object to pass to the template
    * @param options - Optional engine-specific options
    * @returns A promise resolving to the rendered string
+   * @throws (as a rejected promise) If the engine name is not registered
    */
   render(
     source: string,
     data: Record<string, unknown>,
     options?: Record<string, unknown>
   ): Promise<string> {
-    return this.resolveEngine().render(source, data, options);
+    try {
+      return this.resolveEngine().render(source, data, options);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -145,12 +160,17 @@ export class TemplateBuilder {
    * @param data - Data object to pass to the template
    * @param options - Optional engine-specific options
    * @returns A promise resolving to the rendered string
+   * @throws (as a rejected promise) If the engine name is not registered
    */
   renderFile(
     fileName: string,
     data: Record<string, unknown>,
     options?: Record<string, unknown>
   ): Promise<string> {
-    return this.resolveEngine().renderFile(fileName, data, options);
+    try {
+      return this.resolveEngine().renderFile(fileName, data, options);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 }
