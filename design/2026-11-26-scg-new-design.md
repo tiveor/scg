@@ -102,7 +102,7 @@ Unknown flags (`--colour=red` when no prompt is called `colour`) are passed thro
 Usage:
 - **Paths:** `{{name:pascal}}`. `{{name}}` keeps the raw value. Unknown modifier → error. Path safety rules from 0.6.0 apply after the modifier.
 - **EJS / Pug:** templates receive `h` with every helper: `<%= h.pascal(name) %>`. If the user defines a variable called `h`, theirs wins and the helpers are not injected.
-- **Handlebars:** helpers registered once on the shared instance: `{{pascal name}}`.
+- **Handlebars:** helpers passed per render: `{{pascal name}}`. Handlebars resolves helpers before data, so a helper is skipped when the data has a key with the same name (a `title` variable keeps working).
 
 ## Output
 

@@ -1,8 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import { TemplateBuilder } from './template_builder.js';
-import { StringHelper } from './string_helper.js';
-import { loadManifest, type GeneratorManifest } from './manifest.js';
+import {
+  loadManifest,
+  PATH_TOKEN,
+  type GeneratorManifest
+} from './manifest.js';
+import { Casing, isCaseModifier, CASE_MODIFIERS } from './casing.js';
 
 /** Defines a single file in a scaffold structure. */
 export interface ScaffoldFile {
@@ -114,15 +118,21 @@ export class Scaffold {
       dryRun
     };
 
+    // Casing helpers are available as `h` unless the user defines their own `h`
+    const data: Record<string, unknown> =
+      'h' in variables ? variables : { h: Casing, ...variables };
+
     // Render everything first so a template error never leaves a half-written scaffold
     const planned: { outputPath: string; content: string }[] = [];
     for (const file of structure) {
+      if (!shouldGenerate(file.when, variables)) continue;
+
       const templatePath = path.join(templateDir, file.template);
       const outputFileName = resolvePathVariables(file.output, variables);
       const outputPath = path.join(interpolatedOutputDir, outputFileName);
       assertInside(resolvedOutputDir, path.resolve(outputPath), file.output);
 
-      const content = await builder.renderFile(templatePath, variables, {});
+      const content = await builder.renderFile(templatePath, data, {});
       planned.push({ outputPath, content });
     }
 
@@ -173,34 +183,59 @@ export class Scaffold {
 
 }
 
-/** @internal Replaces `{{key}}` tokens in a path with safe variable values. */
+/** @internal Evaluates a `when` condition (`"name"` or `"!name"`). */
+function shouldGenerate(
+  when: string | undefined,
+  variables: Record<string, unknown>
+): boolean {
+  if (!when) return true;
+  const negated = when.startsWith('!');
+  const value = Boolean(variables[negated ? when.slice(1) : when]);
+  return negated ? !value : value;
+}
+
+/**
+ * @internal Replaces `{{name}}` and `{{name:modifier}}` tokens in a path with
+ * safe variable values. Tokens for unknown variables are left untouched.
+ */
 function resolvePathVariables(
   template: string,
   variables: Record<string, unknown>
 ): string {
-  let result = template;
-  for (const [key, value] of Object.entries(variables)) {
-    const token = `{{${key}}}`;
-    if (!result.includes(token)) continue;
+  return template.replace(
+    PATH_TOKEN,
+    (token: string, key: string, modifier?: string) => {
+      if (!(key in variables)) return token;
 
-    if (
-      typeof value !== 'string' &&
-      typeof value !== 'number' &&
-      typeof value !== 'boolean'
-    ) {
-      throw new Error(
-        `Variable "${key}" is used in a path but is not a string, number or boolean`
-      );
+      const value = variables[key];
+      if (
+        typeof value !== 'string' &&
+        typeof value !== 'number' &&
+        typeof value !== 'boolean'
+      ) {
+        throw new Error(
+          `Variable "${key}" is used in a path but is not a string, number or boolean`
+        );
+      }
+
+      let text = String(value);
+      if (modifier) {
+        if (!isCaseModifier(modifier)) {
+          throw new Error(
+            `Path "${template}" uses unknown modifier "${modifier}" (use ${CASE_MODIFIERS.join(', ')})`
+          );
+        }
+        text = Casing[modifier](text);
+      }
+
+      if (path.isAbsolute(text) || text.split(/[\\/]/).includes('..')) {
+        throw new Error(
+          `Variable "${key}" cannot be used in a path: "${text}" is absolute or contains ".."`
+        );
+      }
+      return text;
     }
-    const text = String(value);
-    if (path.isAbsolute(text) || text.split(/[\\/]/).includes('..')) {
-      throw new Error(
-        `Variable "${key}" cannot be used in a path: "${text}" is absolute or contains ".."`
-      );
-    }
-    result = StringHelper.replace(result, token, text);
-  }
-  return result;
+  );
 }
 
 /** @internal Throws if `target` is not inside `root`. */
