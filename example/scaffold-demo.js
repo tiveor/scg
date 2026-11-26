@@ -13,11 +13,11 @@ async function main() {
     engine: 'EJS',
     templateDir: './templates/react-component',
     outputDir: './generated/components/{{name}}',
-    variables: { name: 'UserProfile', style: 'module' },
+    variables: { name: 'UserProfile', cssModule: true, withTest: true },
     structure: [
-      { template: 'component.ejs', output: '{{name}}.tsx' },
-      { template: 'test.ejs', output: '{{name}}.test.tsx' },
-      { template: 'styles.ejs', output: '{{name}}.module.css' },
+      { template: 'component.ejs', output: '{{name:pascal}}.tsx' },
+      { template: 'test.ejs', output: '{{name:pascal}}.test.tsx' },
+      { template: 'styles.ejs', output: '{{name:pascal}}.module.css' },
       { template: 'index.ejs', output: 'index.ts' }
     ],
     dryRun: true
