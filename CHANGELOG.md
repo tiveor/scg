@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.6.0] - 2026-11-26
 
 ### Fixed
 - Bundled template packs now work from any folder: a relative `templateDir` in a manifest is resolved against the manifest file, not the current directory (the README `npx` example failed with `ENOENT`). Bundled manifests now use `"templateDir": "."`. The `express-route` pack never worked outside the repo for the same reason.
