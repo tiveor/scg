@@ -1,25 +1,22 @@
+<%_ const Name = h.pascal(name) _%>
 import React from 'react';
-<% if (style === 'module') { %>
-import styles from './<%= name %>.module.css';
-<% } %>
+<%_ if (cssModule) { _%>
+import styles from './<%= Name %>.module.css';
+<%_ } _%>
 
-export interface <%= name %>Props {
+export interface <%= Name %>Props {
   className?: string;
   children?: React.ReactNode;
 }
 
-export const <%= name %>: React.FC<<%= name %>Props> = ({ className, children }) => {
-<% if (style === 'module') { %>
+export function <%= Name %>({ className, children }: <%= Name %>Props) {
+<%_ if (cssModule) { _%>
   return (
-    <div className={`${styles.root} ${className ?? ''}`}>
+    <div className={[styles.root, className].filter(Boolean).join(' ')}>
       {children}
     </div>
   );
-<% } else { %>
-  return (
-    <div className={className}>
-      {children}
-    </div>
-  );
-<% } %>
-};
+<%_ } else { _%>
+  return <div className={className}>{children}</div>;
+<%_ } _%>
+}

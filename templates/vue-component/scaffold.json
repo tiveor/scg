@@ -1,12 +1,22 @@
 {
+  "name": "vue-component",
+  "description": "Vue 3 single-file component (<script setup>) with optional test",
   "engine": "EJS",
   "templateDir": ".",
-  "outputDir": "./src/components",
-  "variables": {
-    "name": "MyComponent"
-  },
+  "outputDir": "src/components",
+  "prompts": [
+    {
+      "name": "name",
+      "type": "text",
+      "message": "Component name",
+      "positional": true,
+      "required": true,
+      "pattern": "^[A-Za-z][A-Za-z0-9 _-]*$"
+    },
+    { "name": "withTest", "type": "confirm", "message": "Add a test (Vue Test Utils)?", "default": true }
+  ],
   "structure": [
-    { "template": "component.ejs", "output": "{{name}}.vue" },
-    { "template": "test.ejs", "output": "{{name}}.test.ts" }
+    { "template": "component.ejs", "output": "{{name:pascal}}.vue" },
+    { "template": "test.ejs", "output": "{{name:pascal}}.test.ts", "when": "withTest" }
   ]
 }

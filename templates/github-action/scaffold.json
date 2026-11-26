@@ -1,12 +1,26 @@
 {
+  "name": "github-action",
+  "description": "GitHub Actions CI workflow for a Node.js project",
   "engine": "EJS",
   "templateDir": ".",
-  "outputDir": "./.github/workflows",
-  "variables": {
-    "name": "CI",
-    "branch": "main"
-  },
-  "structure": [
-    { "template": "workflow.ejs", "output": "{{name}}.yml" }
-  ]
+  "outputDir": ".github/workflows",
+  "prompts": [
+    { "name": "name", "type": "text", "message": "Workflow name", "positional": true, "default": "CI" },
+    { "name": "branch", "type": "text", "message": "Main branch", "default": "main" },
+    {
+      "name": "nodeVersions",
+      "type": "multiselect",
+      "message": "Node.js versions to test",
+      "choices": ["22", "24", "26"],
+      "default": ["22", "24", "26"]
+    },
+    {
+      "name": "packageManager",
+      "type": "select",
+      "message": "Package manager",
+      "choices": ["npm", "pnpm"],
+      "default": "npm"
+    }
+  ],
+  "structure": [{ "template": "workflow.ejs", "output": "{{name:kebab}}.yml" }]
 }

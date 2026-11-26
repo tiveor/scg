@@ -1,16 +1,17 @@
+<%_ const Name = h.pascal(name) _%>
 import { mount } from '@vue/test-utils';
-import <%= name %> from './<%= name %>.vue';
+import <%= Name %> from './<%= Name %>.vue';
 
-describe('<%= name %>', () => {
+describe('<%= Name %>', () => {
   it('renders slot content', () => {
-    const wrapper = mount(<%= name %>, {
+    const wrapper = mount(<%= Name %>, {
       slots: { default: 'Hello' },
     });
     expect(wrapper.text()).toContain('Hello');
   });
 
   it('has correct root class', () => {
-    const wrapper = mount(<%= name %>);
-    expect(wrapper.classes()).toContain('<%= name.toLowerCase() %>');
+    const wrapper = mount(<%= Name %>);
+    expect(wrapper.classes()).toContain('<%= h.kebab(name) %>');
   });
 });
