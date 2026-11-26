@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Breaking:** `TemplateBuilder` no longer falls back to Handlebars for unknown engine names.
 - **Breaking:** `Scaffold.from()` skips existing files that differ instead of overwriting them.
-- **Breaking:** Node.js 20 or newer is required (Node 18 reached end of life). CI runs on Node 20, 22 and 24.
+- **Breaking:** Node.js 22 or newer is required (Node 18 and 20 reached end of life). CI runs on Node 22, 24 and 26 (Active LTS); releases are published from Node 26.
 
 ## [0.5.0] - 2026-02-11
 

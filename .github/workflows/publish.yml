@@ -18,10 +18,10 @@ jobs:
         with:
           version: 10
 
-      - name: Use Node.js 22
+      - name: Use Node.js 26 (Active LTS)
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 26
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 

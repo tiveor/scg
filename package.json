@@ -39,7 +39,7 @@
     "example": "node example/index.js"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "keywords": [
     "code-generator",
