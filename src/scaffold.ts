@@ -2,13 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import { TemplateBuilder } from './template_builder.js';
 import { StringHelper } from './string_helper.js';
+import { loadManifest, type GeneratorManifest } from './manifest.js';
 
 /** Defines a single file in a scaffold structure. */
 export interface ScaffoldFile {
   /** Relative path to the template file (within `templateDir`). */
   template: string;
-  /** Output filename pattern (supports `{{variable}}` interpolation). */
+  /** Output filename pattern (supports `{{variable}}` and `{{variable:modifier}}`). */
   output: string;
+  /**
+   * Generate this file only when the variable is truthy (`"withTest"`)
+   * or falsy (`"!withTest"`).
+   */
+  when?: string;
 }
 
 /** Configuration options for scaffold generation. */
@@ -153,7 +159,7 @@ export class Scaffold {
    *
    * @param manifestPath - Path to the manifest file (e.g. `scaffold.json`)
    * @returns The parsed manifest options
-   * @throws If the file does not exist or is not valid JSON
+   * @throws If the file does not exist, is not valid JSON, or fails validation
    *
    * @example
    * ```typescript
@@ -161,27 +167,10 @@ export class Scaffold {
    * await Scaffold.from({ ...manifest, variables: { ...manifest.variables, name: 'Button' } });
    * ```
    */
-  static loadManifest(manifestPath: string): ScaffoldOptions {
-    if (!fs.existsSync(manifestPath)) {
-      throw new Error(`Manifest not found: ${manifestPath}`);
-    }
-
-    let manifest: ScaffoldOptions;
-    try {
-      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    } catch (error) {
-      throw new Error(
-        `Invalid JSON in manifest ${manifestPath}: ${(error as Error).message}`
-      );
-    }
-
-    const manifestDir = path.dirname(path.resolve(manifestPath));
-    return {
-      ...manifest,
-      variables: { ...(manifest.variables ?? {}) },
-      templateDir: path.resolve(manifestDir, manifest.templateDir ?? '.')
-    };
+  static loadManifest(manifestPath: string): GeneratorManifest {
+    return loadManifest(manifestPath);
   }
+
 }
 
 /** @internal Replaces `{{key}}` tokens in a path with safe variable values. */
