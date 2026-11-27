@@ -11,6 +11,7 @@ import {
 import { resolveInputs } from './inputs.js';
 import { PromptCancelledError, type Prompter } from './prompter.js';
 import { formatResult } from './output.js';
+import { serveStdio } from './mcp.js';
 import {
   engineFromExtension,
   knownTemplateExtensions
@@ -51,6 +52,7 @@ Commands:
   init [name]              Create a project generator in .scg/<name>/ (default: component)
   generate                 Generate files from a scaffold manifest path
   render <template>        Render a single template file
+  mcp                      Serve the generators to AI agents over MCP (stdio)
 
 Options for new and generate:
   --<input>=<value>        Value for a generator input (e.g. --name=Button --withTest=false)
@@ -67,11 +69,12 @@ Options for render:
 
 Examples:
   scg new react-component Button
-  scg new react-component Button --style=none --withTest=false --yes
+  scg new react-component Button --cssModule=false --withTest=false --yes
   scg list
   scg init widget
   scg generate --manifest=scaffold.json --vars=name=Button
   scg render template.ejs --data='{"name": "World"}'
+  claude mcp add scg -- npx -y @tiveor/scg mcp
 `;
 
 /** @internal Parses `--key=value` flags. */
@@ -364,6 +367,9 @@ export async function runCli(
         return await cmdGenerate(args, io, env);
       case 'render':
         return await cmdRender(args, io);
+      case 'mcp':
+        await serveStdio();
+        return 0;
       case '--help':
       case '-h':
       case undefined:
